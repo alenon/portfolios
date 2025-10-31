@@ -1,0 +1,210 @@
+version: '3.8'
+
+# Production Docker Compose Configuration
+# This file is optimized for production deployment with:
+# - Health checks for all services
+# - Resource limits
+# - Persistent data volumes
+# - Network isolation
+# - Restart policies
+# - Environment variables from .env.production
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: portfolios-db-prod
+    environment:
+      # IMPORTANT: Override these with actual production values
+      POSTGRES_USER: ${POSTGRES_USER:-portfolios_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_THIS_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-portfolios}
+    ports:
+      # Only expose if you need external access
+      # Comment out for better security if not needed
+      - "5432:5432"
+    volumes:
+      # Persistent data storage
+      - postgres_data_prod:/var/lib/postgresql/data
+      # Backup directory (optional)
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-portfolios_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: always
+    networks:
+      - portfolios_network
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portfolios-backend-prod
+    env_file:
+      # Load environment variables from production env file
+      - .env.production
+    environment:
+      # Override database URL to use internal Docker network
+      DATABASE_URL: postgresql://${POSTGRES_USER:-portfolios_user}:${POSTGRES_PASSWORD:-CHANGE_THIS_PASSWORD}@postgres:5432/${POSTGRES_DB:-portfolios}?sslmode=disable
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Mount migrations for database updates
+      - ./migrations:/root/migrations:ro
+      # Log directory (optional)
+      - ./logs:/root/logs
+    healthcheck:
+      # Health check endpoint (adjust to your actual health endpoint)
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/auth/me"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: always
+    networks:
+      - portfolios_network
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Frontend (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      # Pass build-time environment variables
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:8080}
+    container_name: portfolios-frontend-prod
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: always
+    networks:
+      - portfolios_network
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Nginx Reverse Proxy (optional - use if not using external load balancer)
+  nginx:
+    image: nginx:alpine
+    container_name: portfolios-nginx-prod
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      # Nginx configuration
+      - ./configs/nginx-prod.conf:/etc/nginx/nginx.conf:ro
+      # SSL certificates (if using Let's Encrypt with certbot)
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ./nginx-logs:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: always
+    networks:
+      - portfolios_network
+    # Uncomment to enable this service
+    profiles:
+      - with-nginx-proxy
+
+# Networks
+networks:
+  portfolios_network:
+    driver: bridge
+    # Enable IPv6 if needed
+    # enable_ipv6: true
+
+# Persistent volumes
+volumes:
+  postgres_data_prod:
+    driver: local
+    # Optional: Use named volume with specific driver options
+    # driver_opts:
+    #   type: none
+    #   device: /path/to/data
+    #   o: bind
+
+# Production deployment notes:
+#
+# 1. Before deploying:
+#    - Create .env.production with secure values
+#    - Generate strong JWT_SECRET: openssl rand -base64 64
+#    - Set strong POSTGRES_PASSWORD
+#    - Configure SMTP with production email service
+#    - Set CORS_ALLOWED_ORIGINS to production domains only
+#
+# 2. Deploy:
+#    docker-compose -f docker-compose.prod.yml up -d --build
+#
+# 3. Run migrations:
+#    docker-compose -f docker-compose.prod.yml exec backend sh
+#    migrate -path /root/migrations -database "$DATABASE_URL" up
+#
+# 4. View logs:
+#    docker-compose -f docker-compose.prod.yml logs -f
+#
+# 5. Stop services:
+#    docker-compose -f docker-compose.prod.yml down
+#
+# 6. With nginx reverse proxy:
+#    docker-compose -f docker-compose.prod.yml --profile with-nginx-proxy up -d
+#
+# 7. Backup database:
+#    docker-compose -f docker-compose.prod.yml exec postgres pg_dump -U portfolios_user portfolios > backup.sql
+#
+# 8. Restore database:
+#    docker-compose -f docker-compose.prod.yml exec -T postgres psql -U portfolios_user portfolios < backup.sql
+#
+# Security considerations:
+# - Use secrets management for sensitive values (Docker Swarm secrets, Kubernetes secrets)
+# - Enable SSL/TLS at load balancer or nginx proxy level
+# - Use managed database service in production for better reliability
+# - Configure firewall rules to restrict access
+# - Enable Docker security features (user namespaces, AppArmor, SELinux)
+# - Regularly update base images and dependencies
+# - Monitor container logs for security events
+# - Set up automated backups
+# - Use read-only root filesystem where possible

@@ -1,6 +1,6 @@
 # Product Roadmap
 
-1. [ ] User Authentication & Authorization — Implement secure user registration, login, JWT-based authentication, and user session management with password reset functionality. Each user should have isolated access to only their portfolios. `M`
+1. [x] User Authentication & Authorization — Implement secure user registration, login, JWT-based authentication, and user session management with password reset functionality. Each user should have isolated access to only their portfolios. `M`
 
 2. [ ] Portfolio CRUD Operations — Build complete portfolio management with create, read, update, delete operations. Users can create multiple portfolios, name them, and view a list of all their portfolios with basic metadata. `S`
 
