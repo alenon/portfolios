@@ -67,7 +67,10 @@ func main() {
 	if count > 0 {
 		log.Printf("Warning: Database already contains %d users. Do you want to continue? (y/N): ", count)
 		var response string
-		fmt.Scanln(&response)
+		if _, err := fmt.Scanln(&response); err != nil {
+			log.Println("Error reading input:", err)
+			return
+		}
 		if response != "y" && response != "Y" {
 			log.Println("Seeding cancelled")
 			return

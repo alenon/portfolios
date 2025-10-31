@@ -73,7 +73,9 @@ func setupPasswordResetTest(t *testing.T) (services.PasswordResetService, servic
 // generateSecureToken generates a cryptographically secure random token
 func generateSecureToken() string {
 	bytes := make([]byte, 32)
-	rand.Read(bytes)
+	if _, err := rand.Read(bytes); err != nil {
+		panic(err) // Should never happen with crypto/rand
+	}
 	return hex.EncodeToString(bytes)
 }
 

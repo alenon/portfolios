@@ -79,12 +79,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	// Build response
 	response := dto.AuthResponse{
-		User: dto.UserResponse{
-			ID:          user.ID,
-			Email:       user.Email,
-			CreatedAt:   user.CreatedAt,
-			LastLoginAt: user.LastLoginAt,
-		},
+		User:         userToResponse(user),
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresIn:    h.accessTokenDuration,
@@ -119,12 +114,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	// Build response
 	response := dto.AuthResponse{
-		User: dto.UserResponse{
-			ID:          user.ID,
-			Email:       user.Email,
-			CreatedAt:   user.CreatedAt,
-			LastLoginAt: user.LastLoginAt,
-		},
+		User:         userToResponse(user),
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresIn:    h.accessTokenDuration,
@@ -218,12 +208,7 @@ func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
 	}
 
 	// Build response
-	response := dto.UserResponse{
-		ID:          user.ID,
-		Email:       user.Email,
-		CreatedAt:   user.CreatedAt,
-		LastLoginAt: user.LastLoginAt,
-	}
+	response := userToResponse(user)
 
 	c.JSON(http.StatusOK, response)
 }

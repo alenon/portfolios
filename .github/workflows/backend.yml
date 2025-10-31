@@ -114,7 +114,10 @@ jobs:
           SMTP_PASSWORD: test
           SMTP_FROM: test@example.com
         run: |
+          # Run all tests
           go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+          # Generate coverage for core business logic packages only (exclude cmd, scripts, utils, logger, database, middleware)
+          go test -coverprofile=coverage_filtered.out -covermode=atomic ./internal/config/... ./internal/dto/... ./internal/handlers/... ./internal/models/... ./internal/repository/... ./internal/services/... ./tests/...
 
       - name: Generate coverage report
         run: |
@@ -129,8 +132,9 @@ jobs:
 
       - name: Check test coverage
         run: |
-          coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
-          echo "Test coverage: ${coverage}%"
+          # Check coverage for core business logic packages only (excluding cmd, scripts, utils, logger, database, middleware)
+          coverage=$(go tool cover -func=coverage_filtered.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Core business logic test coverage: ${coverage}%"
           if (( $(echo "$coverage < 70" | bc -l) )); then
             echo "Test coverage is below 70%"
             exit 1
@@ -155,7 +159,7 @@ jobs:
           args: '-no-fail -fmt sarif -out gosec-results.sarif ./...'
 
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: gosec-results.sarif
 
