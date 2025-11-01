@@ -71,7 +71,8 @@ func TestUserRepository_FindByEmail_Success(t *testing.T) {
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
-	repo.Create(user)
+	err := repo.Create(user)
+	assert.NoError(t, err)
 
 	foundUser, err := repo.FindByEmail("test@example.com")
 
@@ -114,7 +115,8 @@ func TestUserRepository_FindByID_Success(t *testing.T) {
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
-	repo.Create(user)
+	err := repo.Create(user)
+	assert.NoError(t, err)
 
 	foundUser, err := repo.FindByID(user.ID.String())
 
@@ -168,9 +170,10 @@ func TestUserRepository_UpdateLastLogin_Success(t *testing.T) {
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
-	repo.Create(user)
+	err := repo.Create(user)
+	assert.NoError(t, err)
 
-	err := repo.UpdateLastLogin(user.ID.String())
+	err = repo.UpdateLastLogin(user.ID.String())
 
 	assert.NoError(t, err)
 
