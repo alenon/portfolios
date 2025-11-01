@@ -103,11 +103,12 @@ func TestPasswordResetService_InitiateReset_Success(t *testing.T) {
 		Email:        "test@example.com",
 		PasswordHash: "hashedpassword",
 	}
-	userRepo.Create(user)
+	err := userRepo.Create(user)
+	assert.NoError(t, err)
 
 	service := NewPasswordResetService(userRepo, tokenRepo, emailService, duration)
 
-	err := service.InitiateReset("test@example.com")
+	err = service.InitiateReset("test@example.com")
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(emailService.sentEmails))
@@ -160,11 +161,12 @@ func TestPasswordResetService_InitiateReset_EmailServiceFails(t *testing.T) {
 		Email:        "test@example.com",
 		PasswordHash: "hashedpassword",
 	}
-	userRepo.Create(user)
+	err := userRepo.Create(user)
+	assert.NoError(t, err)
 
 	service := NewPasswordResetService(userRepo, tokenRepo, emailService, duration)
 
-	err := service.InitiateReset("test@example.com")
+	err = service.InitiateReset("test@example.com")
 
 	// Should not return error even if email fails (to prevent enumeration)
 	assert.NoError(t, err)
@@ -183,12 +185,14 @@ func TestPasswordResetService_ValidateResetToken_Success(t *testing.T) {
 		Email:        "test@example.com",
 		PasswordHash: "hashedpassword",
 	}
-	userRepo.Create(user)
+	err := userRepo.Create(user)
+	assert.NoError(t, err)
 
 	service := NewPasswordResetService(userRepo, tokenRepo, emailService, duration)
 
 	// Initiate reset to get token
-	service.InitiateReset("test@example.com")
+	err = service.InitiateReset("test@example.com")
+	assert.NoError(t, err)
 	token := emailService.sentEmails[0].token
 
 	// Validate token
@@ -241,12 +245,14 @@ func TestPasswordResetService_ValidateResetToken_ExpiredToken(t *testing.T) {
 		Email:        "test@example.com",
 		PasswordHash: "hashedpassword",
 	}
-	userRepo.Create(user)
+	err := userRepo.Create(user)
+	assert.NoError(t, err)
 
 	service := NewPasswordResetService(userRepo, tokenRepo, emailService, duration)
 
 	// Initiate reset
-	service.InitiateReset("test@example.com")
+	err = service.InitiateReset("test@example.com")
+	assert.NoError(t, err)
 	token := emailService.sentEmails[0].token
 
 	// Manually expire the token
@@ -274,17 +280,19 @@ func TestPasswordResetService_ResetPassword_Success(t *testing.T) {
 		Email:        "test@example.com",
 		PasswordHash: "oldhashedpassword",
 	}
-	userRepo.Create(user)
+	err := userRepo.Create(user)
+	assert.NoError(t, err)
 
 	service := NewPasswordResetService(userRepo, tokenRepo, emailService, duration)
 
 	// Initiate reset
-	service.InitiateReset("test@example.com")
+	err = service.InitiateReset("test@example.com")
+	assert.NoError(t, err)
 	token := emailService.sentEmails[0].token
 
 	// Reset password
 	newPassword := "NewSecure123"
-	err := service.ResetPassword(token, newPassword)
+	err = service.ResetPassword(token, newPassword)
 
 	assert.NoError(t, err)
 
@@ -338,16 +346,18 @@ func TestPasswordResetService_ResetPassword_InvalidPassword(t *testing.T) {
 		Email:        "test@example.com",
 		PasswordHash: "oldhashedpassword",
 	}
-	userRepo.Create(user)
+	err := userRepo.Create(user)
+	assert.NoError(t, err)
 
 	service := NewPasswordResetService(userRepo, tokenRepo, emailService, duration)
 
 	// Initiate reset
-	service.InitiateReset("test@example.com")
+	err = service.InitiateReset("test@example.com")
+	assert.NoError(t, err)
 	token := emailService.sentEmails[0].token
 
 	// Try to reset with weak password
-	err := service.ResetPassword(token, "weak")
+	err = service.ResetPassword(token, "weak")
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid password")
@@ -365,12 +375,14 @@ func TestPasswordResetService_ResetPassword_ExpiredToken(t *testing.T) {
 		Email:        "test@example.com",
 		PasswordHash: "oldhashedpassword",
 	}
-	userRepo.Create(user)
+	err := userRepo.Create(user)
+	assert.NoError(t, err)
 
 	service := NewPasswordResetService(userRepo, tokenRepo, emailService, duration)
 
 	// Initiate reset
-	service.InitiateReset("test@example.com")
+	err = service.InitiateReset("test@example.com")
+	assert.NoError(t, err)
 	token := emailService.sentEmails[0].token
 
 	// Manually expire the token
@@ -379,7 +391,7 @@ func TestPasswordResetService_ResetPassword_ExpiredToken(t *testing.T) {
 	}
 
 	// Try to reset password with expired token
-	err := service.ResetPassword(token, "NewSecure123")
+	err = service.ResetPassword(token, "NewSecure123")
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid or expired reset token")
@@ -397,19 +409,22 @@ func TestPasswordResetService_ResetPassword_TokenAlreadyUsed(t *testing.T) {
 		Email:        "test@example.com",
 		PasswordHash: "oldhashedpassword",
 	}
-	userRepo.Create(user)
+	err := userRepo.Create(user)
+	assert.NoError(t, err)
 
 	service := NewPasswordResetService(userRepo, tokenRepo, emailService, duration)
 
 	// Initiate reset
-	service.InitiateReset("test@example.com")
+	err = service.InitiateReset("test@example.com")
+	assert.NoError(t, err)
 	token := emailService.sentEmails[0].token
 
 	// Reset password once
-	service.ResetPassword(token, "NewSecure123")
+	err = service.ResetPassword(token, "NewSecure123")
+	assert.NoError(t, err)
 
 	// Try to use same token again
-	err := service.ResetPassword(token, "AnotherPass123")
+	err = service.ResetPassword(token, "AnotherPass123")
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid or expired reset token")

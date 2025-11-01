@@ -70,7 +70,8 @@ func TestRefreshTokenRepository_FindByTokenHash_Success(t *testing.T) {
 		ExpiresAt: time.Now().UTC().Add(7 * 24 * time.Hour),
 		CreatedAt: time.Now().UTC(),
 	}
-	repo.Create(token)
+	err := repo.Create(token)
+	assert.NoError(t, err)
 
 	foundToken, err := repo.FindByTokenHash("token-hash-123")
 
@@ -121,10 +122,12 @@ func TestRefreshTokenRepository_RevokeByUserID_Success(t *testing.T) {
 		ExpiresAt: time.Now().UTC().Add(7 * 24 * time.Hour),
 		CreatedAt: time.Now().UTC(),
 	}
-	repo.Create(token1)
-	repo.Create(token2)
+	err := repo.Create(token1)
+	assert.NoError(t, err)
+	err = repo.Create(token2)
+	assert.NoError(t, err)
 
-	err := repo.RevokeByUserID(userID.String())
+	err = repo.RevokeByUserID(userID.String())
 
 	assert.NoError(t, err)
 
@@ -176,9 +179,10 @@ func TestRefreshTokenRepository_RevokeByTokenHash_Success(t *testing.T) {
 		ExpiresAt: time.Now().UTC().Add(7 * 24 * time.Hour),
 		CreatedAt: time.Now().UTC(),
 	}
-	repo.Create(token)
+	err := repo.Create(token)
+	assert.NoError(t, err)
 
-	err := repo.RevokeByTokenHash("token-hash-123")
+	err = repo.RevokeByTokenHash("token-hash-123")
 
 	assert.NoError(t, err)
 
@@ -218,13 +222,15 @@ func TestRefreshTokenRepository_RevokeByTokenHash_AlreadyRevoked(t *testing.T) {
 		ExpiresAt: time.Now().UTC().Add(7 * 24 * time.Hour),
 		CreatedAt: time.Now().UTC(),
 	}
-	repo.Create(token)
+	err := repo.Create(token)
+	assert.NoError(t, err)
 
 	// Revoke once
-	repo.RevokeByTokenHash("token-hash-123")
+	err = repo.RevokeByTokenHash("token-hash-123")
+	assert.NoError(t, err)
 
 	// Try to revoke again
-	err := repo.RevokeByTokenHash("token-hash-123")
+	err = repo.RevokeByTokenHash("token-hash-123")
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "refresh token not found or already revoked")
@@ -242,7 +248,8 @@ func TestRefreshTokenRepository_DeleteExpired_Success(t *testing.T) {
 		ExpiresAt: time.Now().UTC().Add(-1 * time.Hour),
 		CreatedAt: time.Now().UTC().Add(-2 * time.Hour),
 	}
-	repo.Create(expiredToken)
+	err := repo.Create(expiredToken)
+	assert.NoError(t, err)
 
 	// Create valid token
 	validToken := &models.RefreshToken{
@@ -252,9 +259,10 @@ func TestRefreshTokenRepository_DeleteExpired_Success(t *testing.T) {
 		ExpiresAt: time.Now().UTC().Add(7 * 24 * time.Hour),
 		CreatedAt: time.Now().UTC(),
 	}
-	repo.Create(validToken)
+	err = repo.Create(validToken)
+	assert.NoError(t, err)
 
-	err := repo.DeleteExpired()
+	err = repo.DeleteExpired()
 
 	assert.NoError(t, err)
 
@@ -280,9 +288,10 @@ func TestRefreshTokenRepository_DeleteExpired_NoExpiredTokens(t *testing.T) {
 		ExpiresAt: time.Now().UTC().Add(7 * 24 * time.Hour),
 		CreatedAt: time.Now().UTC(),
 	}
-	repo.Create(token)
+	err := repo.Create(token)
+	assert.NoError(t, err)
 
-	err := repo.DeleteExpired()
+	err = repo.DeleteExpired()
 
 	// Should not error even if no expired tokens
 	assert.NoError(t, err)
