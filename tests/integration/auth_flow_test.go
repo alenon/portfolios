@@ -56,7 +56,7 @@ func TestFullRegistrationFlow(t *testing.T) {
 	authService, userRepo, db := setupTestServices(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	}()
 
 	email := "newuser@example.com"
@@ -93,7 +93,7 @@ func TestLoginRememberMeFunctionality(t *testing.T) {
 	authService, _, db := setupTestServices(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	}()
 
 	email := "testuser@example.com"
@@ -139,7 +139,7 @@ func TestTokenRefreshFlow(t *testing.T) {
 	authService, _, db := setupTestServices(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	}()
 
 	email := "refreshtest@example.com"
@@ -173,7 +173,7 @@ func TestProtectedEndpointAccess(t *testing.T) {
 	authService, userRepo, db := setupTestServices(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	}()
 
 	email := "protectedtest@example.com"
@@ -213,7 +213,7 @@ func TestAuthorizationCheck(t *testing.T) {
 	authService, userRepo, db := setupTestServices(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	}()
 
 	// Create two users
