@@ -41,7 +41,7 @@ const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Get intended destination from location state or default to dashboard
-  const from = (location.state as any)?.from?.pathname || '/dashboard';
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
 
   const {
     control,
@@ -63,12 +63,13 @@ const Login: React.FC = () => {
       await login(data.email, data.password, data.rememberMe);
       // Redirect to intended destination
       navigate(from, { replace: true });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Login error:', err);
+      const error = err as { response?: { data?: { error?: string; message?: string } }; message?: string };
       const errorMessage =
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        err.message ||
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
         'Login failed. Please check your credentials.';
       setError(errorMessage);
     } finally {

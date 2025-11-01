@@ -104,12 +104,13 @@ const ResetPassword: React.FC = () => {
       setTimeout(() => {
         navigate('/login');
       }, 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Reset password error:', err);
+      const error = err as { response?: { data?: { error?: string; message?: string } }; message?: string };
       const errorMessage =
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        err.message ||
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
         'Failed to reset password. Please try again or request a new reset link.';
       setError(errorMessage);
     } finally {

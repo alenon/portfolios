@@ -52,12 +52,13 @@ const ForgotPassword: React.FC = () => {
       setTimeout(() => {
         setSuccess(false);
       }, 5000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Forgot password error:', err);
+      const error = err as { response?: { data?: { error?: string; message?: string } }; message?: string };
       const errorMessage =
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        err.message ||
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
         'Failed to send reset email. Please try again.';
       setError(errorMessage);
     } finally {

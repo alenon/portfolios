@@ -81,12 +81,13 @@ const Register: React.FC = () => {
     try {
       await registerUser(data.email, data.password);
       navigate('/dashboard');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Registration error:', err);
+      const error = err as { response?: { data?: { error?: string; message?: string } }; message?: string };
       const errorMessage =
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        err.message ||
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
         'Registration failed. Please try again.';
       setError(errorMessage);
     } finally {
