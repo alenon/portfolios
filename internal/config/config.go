@@ -32,10 +32,10 @@ type DatabaseConfig struct {
 
 // JWTConfig holds JWT token configuration
 type JWTConfig struct {
-	Secret                   string
-	AccessTokenDuration      time.Duration
-	RefreshTokenDuration     time.Duration
-	RememberMeAccessDuration time.Duration
+	Secret                    string
+	AccessTokenDuration       time.Duration
+	RefreshTokenDuration      time.Duration
+	RememberMeAccessDuration  time.Duration
 	RememberMeRefreshDuration time.Duration
 }
 
@@ -69,10 +69,10 @@ func Load() (*Config, error) {
 			URL: getEnv("DATABASE_URL", ""),
 		},
 		JWT: JWTConfig{
-			Secret:                   getEnv("JWT_SECRET", ""),
-			AccessTokenDuration:      getEnvAsDuration("JWT_ACCESS_TOKEN_DURATION", 30*time.Minute),
-			RefreshTokenDuration:     getEnvAsDuration("JWT_REFRESH_TOKEN_DURATION", 7*24*time.Hour),
-			RememberMeAccessDuration: getEnvAsDuration("JWT_REMEMBER_ME_ACCESS_DURATION", 24*time.Hour),
+			Secret:                    getEnv("JWT_SECRET", ""),
+			AccessTokenDuration:       getEnvAsDuration("JWT_ACCESS_TOKEN_DURATION", 30*time.Minute),
+			RefreshTokenDuration:      getEnvAsDuration("JWT_REFRESH_TOKEN_DURATION", 7*24*time.Hour),
+			RememberMeAccessDuration:  getEnvAsDuration("JWT_REMEMBER_ME_ACCESS_DURATION", 24*time.Hour),
 			RememberMeRefreshDuration: getEnvAsDuration("JWT_REMEMBER_ME_REFRESH_DURATION", 30*24*time.Hour),
 		},
 		SMTP: SMTPConfig{

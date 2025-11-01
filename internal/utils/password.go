@@ -53,9 +53,9 @@ func ValidatePassword(password string) error {
 	}
 
 	var (
-		hasUpper   bool
-		hasLower   bool
-		hasNumber  bool
+		hasUpper  bool
+		hasLower  bool
+		hasNumber bool
 	)
 
 	for _, char := range password {

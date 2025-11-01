@@ -42,10 +42,10 @@ func setupTestServices(t *testing.T) (services.AuthService, repository.UserRepos
 		userRepo,
 		refreshTokenRepo,
 		tokenService,
-		30*time.Minute,     // access token duration
-		7*24*time.Hour,     // refresh token duration
-		24*time.Hour,       // remember me access duration
-		30*24*time.Hour,    // remember me refresh duration
+		30*time.Minute,  // access token duration
+		7*24*time.Hour,  // refresh token duration
+		24*time.Hour,    // remember me access duration
+		30*24*time.Hour, // remember me refresh duration
 	)
 
 	return authService, userRepo, db

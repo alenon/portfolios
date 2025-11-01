@@ -23,11 +23,11 @@ type AuthService interface {
 
 // authService implements AuthService interface
 type authService struct {
-	userRepo         repository.UserRepository
-	refreshTokenRepo repository.RefreshTokenRepository
-	tokenService     *TokenService
-	accessDuration   time.Duration
-	refreshDuration  time.Duration
+	userRepo                  repository.UserRepository
+	refreshTokenRepo          repository.RefreshTokenRepository
+	tokenService              *TokenService
+	accessDuration            time.Duration
+	refreshDuration           time.Duration
 	rememberMeAccessDuration  time.Duration
 	rememberMeRefreshDuration time.Duration
 }
@@ -43,13 +43,13 @@ func NewAuthService(
 	rememberMeRefreshDuration time.Duration,
 ) AuthService {
 	return &authService{
-		userRepo:                   userRepo,
-		refreshTokenRepo:           refreshTokenRepo,
-		tokenService:               tokenService,
-		accessDuration:             accessDuration,
-		refreshDuration:            refreshDuration,
-		rememberMeAccessDuration:   rememberMeAccessDuration,
-		rememberMeRefreshDuration:  rememberMeRefreshDuration,
+		userRepo:                  userRepo,
+		refreshTokenRepo:          refreshTokenRepo,
+		tokenService:              tokenService,
+		accessDuration:            accessDuration,
+		refreshDuration:           refreshDuration,
+		rememberMeAccessDuration:  rememberMeAccessDuration,
+		rememberMeRefreshDuration: rememberMeRefreshDuration,
 	}
 }
 

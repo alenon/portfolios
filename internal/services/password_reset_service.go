@@ -30,10 +30,10 @@ type PasswordResetService interface {
 
 // passwordResetService implements PasswordResetService interface
 type passwordResetService struct {
-	userRepo               repository.UserRepository
-	tokenRepo              repository.PasswordResetRepository
-	emailService           EmailService
-	tokenValidityDuration  time.Duration
+	userRepo              repository.UserRepository
+	tokenRepo             repository.PasswordResetRepository
+	emailService          EmailService
+	tokenValidityDuration time.Duration
 }
 
 // NewPasswordResetService creates a new PasswordResetService instance

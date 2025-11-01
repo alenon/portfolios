@@ -17,10 +17,10 @@ import (
 
 // Mock services for testing
 type mockAuthService struct {
-	registerFunc         func(email, password string) (*models.User, string, string, error)
-	loginFunc            func(email, password string, rememberMe bool) (*models.User, string, string, error)
-	refreshAccessToken   func(refreshToken string) (string, error)
-	logoutFunc           func(refreshToken string) error
+	registerFunc       func(email, password string) (*models.User, string, string, error)
+	loginFunc          func(email, password string, rememberMe bool) (*models.User, string, string, error)
+	refreshAccessToken func(refreshToken string) (string, error)
+	logoutFunc         func(refreshToken string) error
 }
 
 func (m *mockAuthService) Register(email, password string) (*models.User, string, string, error) {
