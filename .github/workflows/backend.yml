@@ -1,0 +1,318 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'migrations/**'
+      - 'Dockerfile'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'migrations/**'
+      - 'Dockerfile'
+      - '.github/workflows/backend.yml'
+
+env:
+  GO_VERSION: '1.24'
+  POSTGRES_VERSION: '17-alpine'
+
+jobs:
+  # Linting and code quality
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+          args: --timeout=5m
+
+      - name: Check formatting
+        run: |
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            echo "Code is not formatted. Run 'gofmt -s -w .'"
+            gofmt -s -l .
+            exit 1
+          fi
+
+      - name: Check for common mistakes
+        run: |
+          go vet ./...
+
+  # Run tests with coverage
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: portfolios_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          go mod download
+          go mod verify
+
+      - name: Install golang-migrate
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.16.2/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/
+          migrate -version
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/portfolios_test?sslmode=disable
+        run: |
+          migrate -path migrations -database "$DATABASE_URL" up
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/portfolios_test?sslmode=disable
+          JWT_SECRET: test-secret-key-for-ci-testing-only
+          SMTP_HOST: smtp.example.com
+          SMTP_PORT: 587
+          SMTP_USERNAME: test
+          SMTP_PASSWORD: test
+          SMTP_FROM: test@example.com
+        run: |
+          # Run all tests
+          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+          # Generate coverage for core business logic packages only (exclude cmd, scripts, utils, logger, database, middleware)
+          go test -coverprofile=coverage_filtered.out -covermode=atomic ./internal/config/... ./internal/dto/... ./internal/handlers/... ./internal/models/... ./internal/repository/... ./internal/services/... ./tests/...
+
+      - name: Generate coverage report
+        run: |
+          go tool cover -html=coverage.out -o coverage.html
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.out
+          flags: backend
+          name: backend-coverage
+
+      - name: Check test coverage
+        run: |
+          # Check coverage for core business logic packages only (excluding cmd, scripts, utils, logger, database, middleware)
+          coverage=$(go tool cover -func=coverage_filtered.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Core business logic test coverage: ${coverage}%"
+          if (( $(echo "$coverage < 70" | bc -l) )); then
+            echo "Test coverage is below 70%"
+            exit 1
+          fi
+
+  # Security scanning
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: '-no-fail -fmt sarif -out gosec-results.sarif ./...'
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: gosec-results.sarif
+
+      - name: Check for vulnerabilities
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+  # Build Docker image
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        # Or use GitHub Container Registry:
+        # with:
+        #   registry: ghcr.io
+        #   username: ${{ github.actor }}
+        #   password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ secrets.DOCKER_USERNAME }}/portfolios-backend
+            # Or for GHCR: ghcr.io/${{ github.repository }}/backend
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/portfolios-backend:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/portfolios-backend:buildcache,mode=max
+          platforms: linux/amd64,linux/arm64
+
+  # Deploy to staging (optional)
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    permissions:
+      contents: read
+    environment:
+      name: staging
+      url: https://staging-api.yourdomain.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Deploy to staging server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /opt/portfolios-staging
+            docker-compose pull backend
+            docker-compose up -d backend
+            docker-compose exec -T backend migrate -path /root/migrations -database "$DATABASE_URL" up
+            echo "Deployment to staging completed"
+
+      - name: Run smoke tests
+        run: |
+          sleep 10
+          curl -f https://staging-api.yourdomain.com/api/auth/me || exit 1
+
+  # Deploy to production (manual approval required)
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, security]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+    environment:
+      name: production
+      url: https://api.yourdomain.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          script: |
+            cd /opt/portfolios
+            docker-compose -f docker-compose.prod.yml pull backend
+            docker-compose -f docker-compose.prod.yml up -d backend
+            docker-compose -f docker-compose.prod.yml exec -T backend migrate -path /root/migrations -database "$DATABASE_URL" up
+            echo "Deployment to production completed"
+
+      - name: Run smoke tests
+        run: |
+          sleep 10
+          curl -f https://api.yourdomain.com/api/auth/me || exit 1
+
+      - name: Notify team
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          text: 'Backend deployment to production: ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+# Secrets required in GitHub repository settings:
+# - DOCKER_USERNAME: Docker Hub username
+# - DOCKER_PASSWORD: Docker Hub password or access token
+# - STAGING_HOST: Staging server hostname
+# - STAGING_USER: Staging server SSH username
+# - STAGING_SSH_KEY: Staging server SSH private key
+# - PRODUCTION_HOST: Production server hostname
+# - PRODUCTION_USER: Production server SSH username
+# - PRODUCTION_SSH_KEY: Production server SSH private key
+# - SLACK_WEBHOOK: Slack webhook URL for notifications (optional)
