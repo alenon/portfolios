@@ -94,7 +94,9 @@ func TestRateLimitingEnforcement(t *testing.T) {
 	router, db, _ := setupSecurityTestServer(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		if err := sqlDB.Close(); err != nil {
+			t.Errorf("Failed to close database: %v", err)
+		}
 	}()
 
 	// Prepare login request
@@ -157,7 +159,9 @@ func TestSQLInjectionPrevention(t *testing.T) {
 	router, db, authService := setupSecurityTestServer(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		if err := sqlDB.Close(); err != nil {
+			t.Errorf("Failed to close database: %v", err)
+		}
 	}()
 
 	// First, create a legitimate user
@@ -254,7 +258,9 @@ func TestBcryptPasswordHashing(t *testing.T) {
 	_, db, authService := setupSecurityTestServer(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		if err := sqlDB.Close(); err != nil {
+			t.Errorf("Failed to close database: %v", err)
+		}
 	}()
 
 	email := "hashtest@example.com"

@@ -90,7 +90,9 @@ func TestFullPasswordResetFlow(t *testing.T) {
 	passwordResetService, authService, mockEmailService, db := setupPasswordResetTest(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		if err := sqlDB.Close(); err != nil {
+			t.Errorf("Failed to close database: %v", err)
+		}
 	}()
 
 	email := "resettest@example.com"
@@ -141,7 +143,9 @@ func TestPasswordResetTokenExpirationAndSingleUse(t *testing.T) {
 	require.NoError(t, err)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		if err := sqlDB.Close(); err != nil {
+			t.Errorf("Failed to close database: %v", err)
+		}
 	}()
 
 	err = db.AutoMigrate(&models.User{}, &models.RefreshToken{}, &models.PasswordResetToken{})
