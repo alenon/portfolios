@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import React from "react";
+import { Box, CircularProgress, Typography } from "@mui/material";
 
 interface LoadingProps {
   message?: string;
@@ -9,7 +9,7 @@ interface LoadingProps {
  * Loading Component
  * Displays a centered spinner with optional message
  */
-const Loading: React.FC<LoadingProps> = ({ message = 'Loading...' }) => {
+const Loading: React.FC<LoadingProps> = ({ message = "Loading..." }) => {
   return (
     <Box
       display="flex"

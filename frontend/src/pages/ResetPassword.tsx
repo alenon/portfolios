@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
+import React, { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
 import {
   Box,
   TextField,
@@ -15,21 +15,21 @@ import {
   ListItemText,
   CircularProgress,
   Alert,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Visibility,
   VisibilityOff,
   CheckCircle,
   RadioButtonUnchecked,
-} from '@mui/icons-material';
-import authService from '../services/authService';
-import ErrorAlert from '../components/ErrorAlert';
+} from "@mui/icons-material";
+import authService from "../services/authService";
+import ErrorAlert from "../components/ErrorAlert";
 import {
   validatePasswordRequirements,
   validatePasswordMatch,
   PASSWORD_REQUIREMENTS,
   type PasswordRequirements,
-} from '../utils/validation';
+} from "../utils/validation";
 
 interface ResetPasswordFormData {
   newPassword: string;
@@ -43,7 +43,7 @@ interface ResetPasswordFormData {
 const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  const token = searchParams.get("token");
 
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -64,14 +64,14 @@ const ResetPassword: React.FC = () => {
     formState: { errors },
   } = useForm<ResetPasswordFormData>({
     defaultValues: {
-      newPassword: '',
-      confirmPassword: '',
+      newPassword: "",
+      confirmPassword: "",
     },
   });
 
   // Watch password fields for real-time validation
-  const newPassword = watch('newPassword');
-  const confirmPassword = watch('confirmPassword');
+  const newPassword = watch("newPassword");
+  const confirmPassword = watch("confirmPassword");
 
   React.useEffect(() => {
     if (newPassword) {
@@ -82,13 +82,13 @@ const ResetPassword: React.FC = () => {
   // Check if token exists
   React.useEffect(() => {
     if (!token) {
-      setError('Invalid reset link. Please request a new password reset.');
+      setError("Invalid reset link. Please request a new password reset.");
     }
   }, [token]);
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     if (!token) {
-      setError('Invalid reset link. Please request a new password reset.');
+      setError("Invalid reset link. Please request a new password reset.");
       return;
     }
 
@@ -102,16 +102,19 @@ const ResetPassword: React.FC = () => {
 
       // Redirect to login after 3 seconds
       setTimeout(() => {
-        navigate('/login');
+        navigate("/login");
       }, 3000);
     } catch (err: unknown) {
-      console.error('Reset password error:', err);
-      const error = err as { response?: { data?: { error?: string; message?: string } }; message?: string };
+      console.error("Reset password error:", err);
+      const error = err as {
+        response?: { data?: { error?: string; message?: string } };
+        message?: string;
+      };
       const errorMessage =
         error.response?.data?.error ||
         error.response?.data?.message ||
         error.message ||
-        'Failed to reset password. Please try again or request a new reset link.';
+        "Failed to reset password. Please try again or request a new reset link.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -135,7 +138,7 @@ const ResetPassword: React.FC = () => {
       alignItems="center"
       minHeight="100vh"
       sx={{
-        backgroundColor: 'background.default',
+        backgroundColor: "background.default",
         p: 2,
       }}
     >
@@ -143,14 +146,19 @@ const ResetPassword: React.FC = () => {
         elevation={3}
         sx={{
           p: 4,
-          width: '100%',
+          width: "100%",
           maxWidth: 450,
         }}
       >
         <Typography variant="h4" component="h1" align="center" gutterBottom>
           Reset Password
         </Typography>
-        <Typography variant="body2" color="text.secondary" align="center" mb={3}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          align="center"
+          mb={3}
+        >
           Enter your new password below
         </Typography>
 
@@ -169,14 +177,15 @@ const ResetPassword: React.FC = () => {
               name="newPassword"
               control={control}
               rules={{
-                required: 'Password is required',
-                validate: () => allRequirementsMet || 'Password does not meet requirements',
+                required: "Password is required",
+                validate: () =>
+                  allRequirementsMet || "Password does not meet requirements",
               }}
               render={({ field }) => (
                 <TextField
                   {...field}
                   label="New Password"
-                  type={showNewPassword ? 'text' : 'password'}
+                  type={showNewPassword ? "text" : "password"}
                   fullWidth
                   margin="normal"
                   error={!!errors.newPassword}
@@ -205,7 +214,11 @@ const ResetPassword: React.FC = () => {
             {/* Password Requirements */}
             {newPassword && (
               <Box mt={1} mb={2}>
-                <Typography variant="caption" color="text.secondary" gutterBottom>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  gutterBottom
+                >
                   Password requirements:
                 </Typography>
                 <List dense disablePadding>
@@ -217,14 +230,17 @@ const ResetPassword: React.FC = () => {
                           {isMet ? (
                             <CheckCircle fontSize="small" color="success" />
                           ) : (
-                            <RadioButtonUnchecked fontSize="small" color="disabled" />
+                            <RadioButtonUnchecked
+                              fontSize="small"
+                              color="disabled"
+                            />
                           )}
                         </ListItemIcon>
                         <ListItemText
                           primary={req.label}
                           primaryTypographyProps={{
-                            variant: 'caption',
-                            color: isMet ? 'success.main' : 'text.secondary',
+                            variant: "caption",
+                            color: isMet ? "success.main" : "text.secondary",
                           }}
                         />
                       </ListItem>
@@ -239,20 +255,25 @@ const ResetPassword: React.FC = () => {
               name="confirmPassword"
               control={control}
               rules={{
-                required: 'Please confirm your password',
-                validate: () => passwordsMatch || 'Passwords do not match',
+                required: "Please confirm your password",
+                validate: () => passwordsMatch || "Passwords do not match",
               }}
               render={({ field }) => (
                 <TextField
                   {...field}
                   label="Confirm Password"
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? "text" : "password"}
                   fullWidth
                   margin="normal"
-                  error={!!errors.confirmPassword || (confirmPassword && !passwordsMatch)}
+                  error={
+                    !!errors.confirmPassword ||
+                    (confirmPassword && !passwordsMatch)
+                  }
                   helperText={
                     errors.confirmPassword?.message ||
-                    (confirmPassword && !passwordsMatch ? 'Passwords do not match' : '')
+                    (confirmPassword && !passwordsMatch
+                      ? "Passwords do not match"
+                      : "")
                   }
                   disabled={loading}
                   autoComplete="new-password"
@@ -260,12 +281,18 @@ const ResetPassword: React.FC = () => {
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                           edge="end"
                           aria-label="toggle password visibility"
                           disabled={loading}
                         >
-                          {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                          {showConfirmPassword ? (
+                            <VisibilityOff />
+                          ) : (
+                            <Visibility />
+                          )}
                         </IconButton>
                       </InputAdornment>
                     ),
@@ -283,7 +310,7 @@ const ResetPassword: React.FC = () => {
               disabled={!isFormValid}
               sx={{ mt: 3, mb: 2 }}
             >
-              {loading ? <CircularProgress size={24} /> : 'Reset Password'}
+              {loading ? <CircularProgress size={24} /> : "Reset Password"}
             </Button>
           </Box>
         )}

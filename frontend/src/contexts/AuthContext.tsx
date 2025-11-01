@@ -1,15 +1,24 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import authService from '../services/authService';
-import type { User } from '../types/auth';
-import { setTokens, getRefreshToken, clearTokens, isAuthenticated as checkAuth } from '../utils/tokenStorage';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
+import authService from "../services/authService";
+import type { User } from "../types/auth";
+import {
+  setTokens,
+  getRefreshToken,
+  clearTokens,
+  isAuthenticated as checkAuth,
+} from "../utils/tokenStorage";
 
 // Auth context interface
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string, rememberMe: boolean) => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    rememberMe: boolean,
+  ) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
@@ -43,7 +52,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(userData);
           setIsAuthenticated(true);
         } catch (error) {
-          console.error('Failed to load user:', error);
+          console.error("Failed to load user:", error);
           clearTokens();
           setUser(null);
           setIsAuthenticated(false);
@@ -58,19 +67,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   /**
    * Login function
    */
-  const login = async (email: string, password: string, rememberMe: boolean): Promise<void> => {
+  const login = async (
+    email: string,
+    password: string,
+    rememberMe: boolean,
+  ): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await authService.login(email, password, rememberMe);
 
       // Store tokens
-      setTokens(response.access_token, response.refresh_token, response.expires_in);
+      setTokens(
+        response.access_token,
+        response.refresh_token,
+        response.expires_in,
+      );
 
       // Update state
       setUser(response.user);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -86,13 +103,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authService.register(email, password);
 
       // Store tokens
-      setTokens(response.access_token, response.refresh_token, response.expires_in);
+      setTokens(
+        response.access_token,
+        response.refresh_token,
+        response.expires_in,
+      );
 
       // Update state
       setUser(response.user);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error('Registration failed:', error);
+      console.error("Registration failed:", error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -111,7 +132,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await authService.logout(refreshToken);
       }
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
       // Continue with logout even if API call fails
     } finally {
       // Clear tokens and state
@@ -132,7 +153,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(userData);
         setIsAuthenticated(true);
       } catch (error) {
-        console.error('Failed to refresh auth:', error);
+        console.error("Failed to refresh auth:", error);
         clearTokens();
         setUser(null);
         setIsAuthenticated(false);
@@ -161,7 +182,7 @@ export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
 
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
 
   return context;

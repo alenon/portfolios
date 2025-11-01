@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme } from "@mui/material/styles";
 
 /**
  * Custom MUI Theme
@@ -6,76 +6,76 @@ import { createTheme } from '@mui/material/styles';
  */
 const theme = createTheme({
   palette: {
-    mode: 'light',
+    mode: "light",
     primary: {
-      main: '#1976d2',
-      light: '#42a5f5',
-      dark: '#1565c0',
-      contrastText: '#fff',
+      main: "#1976d2",
+      light: "#42a5f5",
+      dark: "#1565c0",
+      contrastText: "#fff",
     },
     secondary: {
-      main: '#dc004e',
-      light: '#f73378',
-      dark: '#9a0036',
-      contrastText: '#fff',
+      main: "#dc004e",
+      light: "#f73378",
+      dark: "#9a0036",
+      contrastText: "#fff",
     },
     success: {
-      main: '#2e7d32',
-      light: '#4caf50',
-      dark: '#1b5e20',
+      main: "#2e7d32",
+      light: "#4caf50",
+      dark: "#1b5e20",
     },
     error: {
-      main: '#d32f2f',
-      light: '#ef5350',
-      dark: '#c62828',
+      main: "#d32f2f",
+      light: "#ef5350",
+      dark: "#c62828",
     },
     warning: {
-      main: '#ed6c02',
-      light: '#ff9800',
-      dark: '#e65100',
+      main: "#ed6c02",
+      light: "#ff9800",
+      dark: "#e65100",
     },
     info: {
-      main: '#0288d1',
-      light: '#03a9f4',
-      dark: '#01579b',
+      main: "#0288d1",
+      light: "#03a9f4",
+      dark: "#01579b",
     },
     background: {
-      default: '#f5f5f5',
-      paper: '#ffffff',
+      default: "#f5f5f5",
+      paper: "#ffffff",
     },
   },
   typography: {
     fontFamily: [
-      '-apple-system',
-      'BlinkMacSystemFont',
+      "-apple-system",
+      "BlinkMacSystemFont",
       '"Segoe UI"',
-      'Roboto',
+      "Roboto",
       '"Helvetica Neue"',
-      'Arial',
-      'sans-serif',
-    ].join(','),
+      "Arial",
+      "sans-serif",
+    ].join(","),
     h1: {
-      fontSize: '2.5rem',
+      fontSize: "2.5rem",
       fontWeight: 600,
     },
     h2: {
-      fontSize: '2rem',
+      fontSize: "2rem",
       fontWeight: 600,
     },
     h3: {
-      fontSize: '1.75rem',
+      fontSize: "1.75rem",
       fontWeight: 600,
     },
     h4: {
-      fontSize: '1.5rem',
+      fontSize: "1.5rem",
       fontWeight: 600,
     },
     h5: {
-      fontSize: '1.25rem',
+      fontSize: "1.25rem",
       fontWeight: 600,
     },
     h6: {
-      fontSize: '1rem',
+      fontSize: "1rem",
       fontWeight: 600,
     },
   },
@@ -83,9 +83,9 @@ const theme = createTheme({
   breakpoints: {
     values: {
       xs: 0,
-      sm: 768,   // Mobile
-      md: 1024,  // Tablet
-      lg: 1280,  // Desktop
+      sm: 768, // Mobile
+      md: 1024, // Tablet
+      lg: 1280, // Desktop
       xl: 1920,
     },
   },
@@ -93,16 +93,16 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          textTransform: 'none',
+          textTransform: "none",
           borderRadius: 8,
-          padding: '10px 24px',
+          padding: "10px 24px",
         },
       },
     },
     MuiTextField: {
       styleOverrides: {
         root: {
-          '& .MuiOutlinedInput-root': {
+          "& .MuiOutlinedInput-root": {
             borderRadius: 8,
           },
         },

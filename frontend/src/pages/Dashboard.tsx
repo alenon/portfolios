@@ -1,7 +1,7 @@
-import React from 'react';
-import { Box, Typography, Paper } from '@mui/material';
-import AuthenticatedLayout from '../components/Layout/AuthenticatedLayout';
-import { useAuth } from '../contexts/AuthContext';
+import React from "react";
+import { Box, Typography, Paper } from "@mui/material";
+import AuthenticatedLayout from "../components/Layout/AuthenticatedLayout";
+import { useAuth } from "../contexts/AuthContext";
 
 /**
  * Dashboard Page
@@ -25,7 +25,8 @@ const Dashboard: React.FC = () => {
             Dashboard coming soon...
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            This page will be expanded with portfolio management features in the future.
+            This page will be expanded with portfolio management features in the
+            future.
           </Typography>
         </Paper>
       </Box>

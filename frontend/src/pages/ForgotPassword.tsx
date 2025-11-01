@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
+import React, { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
 import {
   Box,
   TextField,
@@ -10,11 +10,11 @@ import {
   Link,
   CircularProgress,
   Alert,
-} from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
-import authService from '../services/authService';
-import ErrorAlert from '../components/ErrorAlert';
-import { validateEmail } from '../utils/validation';
+} from "@mui/material";
+import { ArrowBack } from "@mui/icons-material";
+import authService from "../services/authService";
+import ErrorAlert from "../components/ErrorAlert";
+import { validateEmail } from "../utils/validation";
 
 interface ForgotPasswordFormData {
   email: string;
@@ -35,7 +35,7 @@ const ForgotPassword: React.FC = () => {
     formState: { errors },
   } = useForm<ForgotPasswordFormData>({
     defaultValues: {
-      email: '',
+      email: "",
     },
   });
 
@@ -53,13 +53,16 @@ const ForgotPassword: React.FC = () => {
         setSuccess(false);
       }, 5000);
     } catch (err: unknown) {
-      console.error('Forgot password error:', err);
-      const error = err as { response?: { data?: { error?: string; message?: string } }; message?: string };
+      console.error("Forgot password error:", err);
+      const error = err as {
+        response?: { data?: { error?: string; message?: string } };
+        message?: string;
+      };
       const errorMessage =
         error.response?.data?.error ||
         error.response?.data?.message ||
         error.message ||
-        'Failed to send reset email. Please try again.';
+        "Failed to send reset email. Please try again.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -73,7 +76,7 @@ const ForgotPassword: React.FC = () => {
       alignItems="center"
       minHeight="100vh"
       sx={{
-        backgroundColor: 'background.default',
+        backgroundColor: "background.default",
         p: 2,
       }}
     >
@@ -81,14 +84,19 @@ const ForgotPassword: React.FC = () => {
         elevation={3}
         sx={{
           p: 4,
-          width: '100%',
+          width: "100%",
           maxWidth: 450,
         }}
       >
         <Typography variant="h4" component="h1" align="center" gutterBottom>
           Forgot Password?
         </Typography>
-        <Typography variant="body2" color="text.secondary" align="center" mb={3}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          align="center"
+          mb={3}
+        >
           Enter your email and we'll send you a password reset link
         </Typography>
 
@@ -96,7 +104,8 @@ const ForgotPassword: React.FC = () => {
 
         {success && (
           <Alert severity="success" sx={{ mb: 2 }}>
-            If an account exists with this email, we've sent a password reset link
+            If an account exists with this email, we've sent a password reset
+            link
           </Alert>
         )}
 
@@ -106,8 +115,9 @@ const ForgotPassword: React.FC = () => {
             name="email"
             control={control}
             rules={{
-              required: 'Email is required',
-              validate: (value) => validateEmail(value) || 'Please enter a valid email address',
+              required: "Email is required",
+              validate: (value) =>
+                validateEmail(value) || "Please enter a valid email address",
             }}
             render={({ field }) => (
               <TextField
@@ -134,7 +144,7 @@ const ForgotPassword: React.FC = () => {
             disabled={loading}
             sx={{ mt: 3, mb: 2 }}
           >
-            {loading ? <CircularProgress size={24} /> : 'Send Reset Link'}
+            {loading ? <CircularProgress size={24} /> : "Send Reset Link"}
           </Button>
 
           {/* Back to Login Link */}
@@ -144,8 +154,8 @@ const ForgotPassword: React.FC = () => {
               to="/login"
               underline="hover"
               sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
+                display: "inline-flex",
+                alignItems: "center",
                 gap: 0.5,
               }}
             >

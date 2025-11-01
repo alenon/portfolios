@@ -1,16 +1,21 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
-import { AuthProvider } from './contexts/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import theme from './theme';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import theme from "./theme";
 
 // Page imports
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import Dashboard from './pages/Dashboard';
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Dashboard from "./pages/Dashboard";
 
 /**
  * Main App Component

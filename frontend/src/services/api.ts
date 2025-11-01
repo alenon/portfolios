@@ -1,12 +1,21 @@
-import axios from 'axios';
-import type { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '../utils/tokenStorage';
+import axios from "axios";
+import type {
+  AxiosInstance,
+  AxiosError,
+  InternalAxiosRequestConfig,
+} from "axios";
+import {
+  getAccessToken,
+  getRefreshToken,
+  setTokens,
+  clearTokens,
+} from "../utils/tokenStorage";
 
 // Create axios instance with base configuration
 const api: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   timeout: 10000, // 10 second timeout
 });
@@ -48,7 +57,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 /**
@@ -59,14 +68,20 @@ api.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
 
     // Handle 401 Unauthorized errors
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry
+    ) {
       // If this is the refresh endpoint failing, clear tokens and redirect
-      if (originalRequest.url?.includes('/auth/refresh')) {
+      if (originalRequest.url?.includes("/auth/refresh")) {
         clearTokens();
-        window.location.href = '/login';
+        window.location.href = "/login";
         return Promise.reject(error);
       }
 
@@ -94,15 +109,15 @@ api.interceptors.response.use(
 
       if (!refreshToken) {
         clearTokens();
-        window.location.href = '/login';
+        window.location.href = "/login";
         return Promise.reject(error);
       }
 
       try {
         // Attempt to refresh the token
         const response = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}/auth/refresh`,
-          { refresh_token: refreshToken }
+          `${import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api"}/auth/refresh`,
+          { refresh_token: refreshToken },
         );
 
         const { access_token, expires_in } = response.data;
@@ -124,7 +139,7 @@ api.interceptors.response.use(
         // Refresh failed - clear tokens and redirect to login
         processQueue(refreshError, null);
         clearTokens();
-        window.location.href = '/login';
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -133,7 +148,7 @@ api.interceptors.response.use(
 
     // For other errors, just reject
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

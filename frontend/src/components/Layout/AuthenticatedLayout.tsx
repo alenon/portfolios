@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -7,12 +7,12 @@ import {
   IconButton,
   Box,
   Container,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Logout as LogoutIcon,
   AccountCircle as AccountCircleIcon,
-} from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
+} from "@mui/icons-material";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode;
@@ -22,23 +22,25 @@ interface AuthenticatedLayoutProps {
  * AuthenticatedLayout Component
  * Provides header with user info and logout button for authenticated pages
  */
-const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) => {
+const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({
+  children,
+}) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/login');
+      navigate("/login");
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
       // Navigate to login even if logout fails
-      navigate('/login');
+      navigate("/login");
     }
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       {/* Header */}
       <AppBar position="static">
         <Toolbar>
@@ -53,14 +55,17 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
           {/* User Email Display */}
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
+              display: "flex",
+              alignItems: "center",
               gap: 1,
               mr: 2,
             }}
           >
             <AccountCircleIcon />
-            <Typography variant="body1" sx={{ display: { xs: 'none', sm: 'block' } }}>
+            <Typography
+              variant="body1"
+              sx={{ display: { xs: "none", sm: "block" } }}
+            >
               {user?.email}
             </Typography>
           </Box>
@@ -95,9 +100,9 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
         sx={{
           py: 2,
           px: 2,
-          mt: 'auto',
+          mt: "auto",
           backgroundColor: (theme) =>
-            theme.palette.mode === 'light'
+            theme.palette.mode === "light"
               ? theme.palette.grey[200]
               : theme.palette.grey[800],
         }}

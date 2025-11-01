@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
+import React, { useState } from "react";
+import { useNavigate, useLocation, Link as RouterLink } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
 import {
   Box,
   TextField,
@@ -13,14 +13,11 @@ import {
   Checkbox,
   FormControlLabel,
   CircularProgress,
-} from '@mui/material';
-import {
-  Visibility,
-  VisibilityOff,
-} from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
-import ErrorAlert from '../components/ErrorAlert';
-import { validateEmail } from '../utils/validation';
+} from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { useAuth } from "../contexts/AuthContext";
+import ErrorAlert from "../components/ErrorAlert";
+import { validateEmail } from "../utils/validation";
 
 interface LoginFormData {
   email: string;
@@ -41,7 +38,9 @@ const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Get intended destination from location state or default to dashboard
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
+  const from =
+    (location.state as { from?: { pathname: string } })?.from?.pathname ||
+    "/dashboard";
 
   const {
     control,
@@ -49,8 +48,8 @@ const Login: React.FC = () => {
     formState: { errors },
   } = useForm<LoginFormData>({
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
       rememberMe: false,
     },
   });
@@ -64,13 +63,16 @@ const Login: React.FC = () => {
       // Redirect to intended destination
       navigate(from, { replace: true });
     } catch (err: unknown) {
-      console.error('Login error:', err);
-      const error = err as { response?: { data?: { error?: string; message?: string } }; message?: string };
+      console.error("Login error:", err);
+      const error = err as {
+        response?: { data?: { error?: string; message?: string } };
+        message?: string;
+      };
       const errorMessage =
         error.response?.data?.error ||
         error.response?.data?.message ||
         error.message ||
-        'Login failed. Please check your credentials.';
+        "Login failed. Please check your credentials.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -88,7 +90,7 @@ const Login: React.FC = () => {
       alignItems="center"
       minHeight="100vh"
       sx={{
-        backgroundColor: 'background.default',
+        backgroundColor: "background.default",
         p: 2,
       }}
     >
@@ -96,14 +98,19 @@ const Login: React.FC = () => {
         elevation={3}
         sx={{
           p: 4,
-          width: '100%',
+          width: "100%",
           maxWidth: 450,
         }}
       >
         <Typography variant="h4" component="h1" align="center" gutterBottom>
           Welcome Back
         </Typography>
-        <Typography variant="body2" color="text.secondary" align="center" mb={3}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          align="center"
+          mb={3}
+        >
           Log in to your account
         </Typography>
 
@@ -115,8 +122,9 @@ const Login: React.FC = () => {
             name="email"
             control={control}
             rules={{
-              required: 'Email is required',
-              validate: (value) => validateEmail(value) || 'Please enter a valid email address',
+              required: "Email is required",
+              validate: (value) =>
+                validateEmail(value) || "Please enter a valid email address",
             }}
             render={({ field }) => (
               <TextField
@@ -139,13 +147,13 @@ const Login: React.FC = () => {
             name="password"
             control={control}
             rules={{
-              required: 'Password is required',
+              required: "Password is required",
             }}
             render={({ field }) => (
               <TextField
                 {...field}
                 label="Password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 fullWidth
                 margin="normal"
                 error={!!errors.password}
@@ -215,13 +223,13 @@ const Login: React.FC = () => {
             disabled={loading}
             sx={{ mt: 2, mb: 2 }}
           >
-            {loading ? <CircularProgress size={24} /> : 'Log In'}
+            {loading ? <CircularProgress size={24} /> : "Log In"}
           </Button>
 
           {/* Link to Register */}
           <Box textAlign="center">
             <Typography variant="body2">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <Link component={RouterLink} to="/register" underline="hover">
                 Sign up
               </Link>

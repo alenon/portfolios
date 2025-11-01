@@ -1,18 +1,22 @@
 // Token storage keys
-const ACCESS_TOKEN_KEY = 'access_token';
-const REFRESH_TOKEN_KEY = 'refresh_token';
-const TOKEN_EXPIRY_KEY = 'token_expiry';
+const ACCESS_TOKEN_KEY = "access_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
+const TOKEN_EXPIRY_KEY = "token_expiry";
 
 /**
  * Store access and refresh tokens in localStorage
  */
-export const setTokens = (accessToken: string, refreshToken: string, expiresIn?: number): void => {
+export const setTokens = (
+  accessToken: string,
+  refreshToken: string,
+  expiresIn?: number,
+): void => {
   localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
 
   // Store expiration time if provided (current time + expires_in seconds)
   if (expiresIn) {
-    const expiryTime = Date.now() + (expiresIn * 1000);
+    const expiryTime = Date.now() + expiresIn * 1000;
     localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
   }
 };

@@ -1,10 +1,10 @@
-import api from './api';
+import api from "./api";
 import type {
   AuthResponse,
   User,
   MessageResponse,
   RefreshTokenResponse,
-} from '../types/auth';
+} from "../types/auth";
 
 /**
  * Authentication Service
@@ -15,7 +15,7 @@ class AuthService {
    * Register a new user
    */
   async register(email: string, password: string): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/register', {
+    const response = await api.post<AuthResponse>("/auth/register", {
       email,
       password,
     });
@@ -25,8 +25,12 @@ class AuthService {
   /**
    * Login with email and password
    */
-  async login(email: string, password: string, rememberMe: boolean): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/login', {
+  async login(
+    email: string,
+    password: string,
+    rememberMe: boolean,
+  ): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse>("/auth/login", {
       email,
       password,
       remember_me: rememberMe,
@@ -38,7 +42,7 @@ class AuthService {
    * Refresh access token using refresh token
    */
   async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
-    const response = await api.post<RefreshTokenResponse>('/auth/refresh', {
+    const response = await api.post<RefreshTokenResponse>("/auth/refresh", {
       refresh_token: refreshToken,
     });
     return response.data;
@@ -48,7 +52,7 @@ class AuthService {
    * Logout and revoke refresh token
    */
   async logout(refreshToken: string): Promise<void> {
-    await api.post('/auth/logout', {
+    await api.post("/auth/logout", {
       refresh_token: refreshToken,
     });
   }
@@ -57,7 +61,7 @@ class AuthService {
    * Get current authenticated user profile
    */
   async getCurrentUser(): Promise<User> {
-    const response = await api.get<User>('/auth/me');
+    const response = await api.get<User>("/auth/me");
     return response.data;
   }
 
@@ -65,7 +69,7 @@ class AuthService {
    * Request password reset email
    */
   async forgotPassword(email: string): Promise<MessageResponse> {
-    const response = await api.post<MessageResponse>('/auth/forgot-password', {
+    const response = await api.post<MessageResponse>("/auth/forgot-password", {
       email,
     });
     return response.data;
@@ -74,8 +78,11 @@ class AuthService {
   /**
    * Reset password with token
    */
-  async resetPassword(token: string, newPassword: string): Promise<MessageResponse> {
-    const response = await api.post<MessageResponse>('/auth/reset-password', {
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<MessageResponse> {
+    const response = await api.post<MessageResponse>("/auth/reset-password", {
       token,
       new_password: newPassword,
     });

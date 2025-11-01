@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
+import React, { useState } from "react";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
 import {
   Box,
   TextField,
@@ -15,21 +15,21 @@ import {
   ListItemIcon,
   ListItemText,
   CircularProgress,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Visibility,
   VisibilityOff,
   CheckCircle,
   RadioButtonUnchecked,
-} from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
-import ErrorAlert from '../components/ErrorAlert';
+} from "@mui/icons-material";
+import { useAuth } from "../contexts/AuthContext";
+import ErrorAlert from "../components/ErrorAlert";
 import {
   validateEmail,
   validatePasswordRequirements,
   PASSWORD_REQUIREMENTS,
   type PasswordRequirements,
-} from '../utils/validation';
+} from "../utils/validation";
 
 interface RegisterFormData {
   email: string;
@@ -60,13 +60,13 @@ const Register: React.FC = () => {
     formState: { errors },
   } = useForm<RegisterFormData>({
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
   });
 
   // Watch password field for real-time validation feedback
-  const password = watch('password');
+  const password = watch("password");
 
   React.useEffect(() => {
     if (password) {
@@ -80,15 +80,18 @@ const Register: React.FC = () => {
 
     try {
       await registerUser(data.email, data.password);
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err: unknown) {
-      console.error('Registration error:', err);
-      const error = err as { response?: { data?: { error?: string; message?: string } }; message?: string };
+      console.error("Registration error:", err);
+      const error = err as {
+        response?: { data?: { error?: string; message?: string } };
+        message?: string;
+      };
       const errorMessage =
         error.response?.data?.error ||
         error.response?.data?.message ||
         error.message ||
-        'Registration failed. Please try again.';
+        "Registration failed. Please try again.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -112,7 +115,7 @@ const Register: React.FC = () => {
       alignItems="center"
       minHeight="100vh"
       sx={{
-        backgroundColor: 'background.default',
+        backgroundColor: "background.default",
         p: 2,
       }}
     >
@@ -120,14 +123,19 @@ const Register: React.FC = () => {
         elevation={3}
         sx={{
           p: 4,
-          width: '100%',
+          width: "100%",
           maxWidth: 450,
         }}
       >
         <Typography variant="h4" component="h1" align="center" gutterBottom>
           Create Account
         </Typography>
-        <Typography variant="body2" color="text.secondary" align="center" mb={3}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          align="center"
+          mb={3}
+        >
           Sign up to get started
         </Typography>
 
@@ -139,8 +147,9 @@ const Register: React.FC = () => {
             name="email"
             control={control}
             rules={{
-              required: 'Email is required',
-              validate: (value) => validateEmail(value) || 'Please enter a valid email address',
+              required: "Email is required",
+              validate: (value) =>
+                validateEmail(value) || "Please enter a valid email address",
             }}
             render={({ field }) => (
               <TextField
@@ -163,14 +172,15 @@ const Register: React.FC = () => {
             name="password"
             control={control}
             rules={{
-              required: 'Password is required',
-              validate: () => allRequirementsMet || 'Password does not meet requirements',
+              required: "Password is required",
+              validate: () =>
+                allRequirementsMet || "Password does not meet requirements",
             }}
             render={({ field }) => (
               <TextField
                 {...field}
                 label="Password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 fullWidth
                 margin="normal"
                 error={!!errors.password}
@@ -210,14 +220,17 @@ const Register: React.FC = () => {
                         {isMet ? (
                           <CheckCircle fontSize="small" color="success" />
                         ) : (
-                          <RadioButtonUnchecked fontSize="small" color="disabled" />
+                          <RadioButtonUnchecked
+                            fontSize="small"
+                            color="disabled"
+                          />
                         )}
                       </ListItemIcon>
                       <ListItemText
                         primary={req.label}
                         primaryTypographyProps={{
-                          variant: 'caption',
-                          color: isMet ? 'success.main' : 'text.secondary',
+                          variant: "caption",
+                          color: isMet ? "success.main" : "text.secondary",
                         }}
                       />
                     </ListItem>
@@ -236,13 +249,13 @@ const Register: React.FC = () => {
             disabled={loading || !allRequirementsMet}
             sx={{ mt: 2, mb: 2 }}
           >
-            {loading ? <CircularProgress size={24} /> : 'Register'}
+            {loading ? <CircularProgress size={24} /> : "Register"}
           </Button>
 
           {/* Link to Login */}
           <Box textAlign="center">
             <Typography variant="body2">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <Link component={RouterLink} to="/login" underline="hover">
                 Log in
               </Link>
