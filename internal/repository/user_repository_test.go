@@ -223,10 +223,11 @@ func TestUserRepository_UpdatePassword_Success(t *testing.T) {
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
-	repo.Create(user)
+	err := repo.Create(user)
+	assert.NoError(t, err)
 
 	newPasswordHash := "new-hashed-password"
-	err := repo.UpdatePassword(user.ID.String(), newPasswordHash)
+	err = repo.UpdatePassword(user.ID.String(), newPasswordHash)
 
 	assert.NoError(t, err)
 
