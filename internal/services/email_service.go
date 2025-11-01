@@ -86,9 +86,10 @@ The Portfolios Team`, resetLink)
 
 // sendWithTLS sends email with TLS/SSL connection
 func (s *emailService) sendWithTLS(addr string, auth smtp.Auth, message []byte, to string) error {
-	// Create TLS configuration
+	// Create TLS configuration with minimum TLS 1.2 for security
 	tlsConfig := &tls.Config{
 		ServerName: s.host,
+		MinVersion: tls.VersionTLS12,
 	}
 
 	// Connect to the SMTP server

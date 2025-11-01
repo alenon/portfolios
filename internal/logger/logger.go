@@ -45,8 +45,8 @@ func NewLogger(config Config) *AppLogger {
 	case "stderr":
 		output = os.Stderr
 	default:
-		// File output
-		file, err := os.OpenFile(config.OutputPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		// File output with secure permissions (read/write for owner only)
+		file, err := os.OpenFile(config.OutputPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 		if err != nil {
 			log.Fatal().Err(err).Str("path", config.OutputPath).Msg("Failed to open log file")
 		}
