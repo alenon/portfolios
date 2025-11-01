@@ -267,7 +267,7 @@ const ResetPassword: React.FC = () => {
                   margin="normal"
                   error={
                     !!errors.confirmPassword ||
-                    (confirmPassword && !passwordsMatch)
+                    (!!confirmPassword && !passwordsMatch)
                   }
                   helperText={
                     errors.confirmPassword?.message ||
