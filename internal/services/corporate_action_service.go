@@ -21,10 +21,12 @@ type CorporateActionService interface {
 	MarkAsApplied(id string) error
 	Delete(id string) error
 
-	// Application methods (placeholder for future implementation)
+	// Application methods
 	ApplyStockSplit(portfolioID, symbol, userID string, ratio decimal.Decimal, date time.Time) error
 	ApplyDividend(portfolioID, symbol, userID string, amount decimal.Decimal, date time.Time) error
 	ApplyMerger(portfolioID, oldSymbol, newSymbol, userID string, ratio decimal.Decimal, date time.Time) error
+	ApplySpinoff(portfolioID, oldSymbol, newSymbol, userID string, ratio decimal.Decimal, date time.Time) error
+	ApplyTickerChange(portfolioID, oldSymbol, newSymbol, userID string, date time.Time) error
 }
 
 // corporateActionService implements CorporateActionService interface
@@ -364,6 +366,254 @@ func (s *corporateActionService) ApplyMerger(
 
 	if err := s.transactionRepo.Create(mergerTransaction); err != nil {
 		return fmt.Errorf("failed to create merger transaction: %w", err)
+	}
+
+	return nil
+}
+
+// ApplySpinoff applies a spinoff to a portfolio
+// A spinoff is when a company distributes shares of a subsidiary to existing shareholders
+// Example: You own 100 shares of Company A. Company A spins off Company B at 0.5:1 ratio.
+// You still have 100 shares of Company A, plus you receive 50 shares of Company B.
+func (s *corporateActionService) ApplySpinoff(
+	portfolioID, oldSymbol, newSymbol, userID string,
+	ratio decimal.Decimal,
+	date time.Time,
+) error {
+	// Verify portfolio exists and belongs to user
+	portfolio, err := s.portfolioRepo.FindByID(portfolioID)
+	if err != nil {
+		return models.ErrPortfolioNotFound
+	}
+	if portfolio.UserID.String() != userID {
+		return models.ErrUnauthorizedAccess
+	}
+
+	// Validate spinoff ratio
+	if ratio.LessThanOrEqual(decimal.Zero) {
+		return fmt.Errorf("invalid spinoff ratio: must be greater than 0")
+	}
+
+	// 1. Get holding for parent symbol
+	parentHolding, err := s.holdingRepo.FindByPortfolioIDAndSymbol(portfolioID, oldSymbol)
+	if err != nil {
+		return fmt.Errorf("no holding found for symbol %s: %w", oldSymbol, err)
+	}
+
+	// 2. Calculate spinoff shares
+	// Example: 100 shares of parent at 0.5:1 ratio = 50 shares of spinoff
+	spinoffQuantity := parentHolding.Quantity.Mul(ratio)
+
+	// 3. Get or create holding for spinoff symbol
+	// For spinoffs, the cost basis of the parent is typically allocated between
+	// parent and spinoff based on relative fair market values on distribution date.
+	// For simplicity, we'll allocate a small percentage (10%) to the spinoff,
+	// but in production this should be configurable or based on actual market values.
+	costBasisAllocationRatio := decimal.NewFromFloat(0.10) // 10% to spinoff, 90% stays with parent
+	spinoffCostBasis := parentHolding.CostBasis.Mul(costBasisAllocationRatio)
+
+	spinoffHolding, err := s.holdingRepo.FindByPortfolioIDAndSymbol(portfolioID, newSymbol)
+	if err != nil {
+		// Create new holding if it doesn't exist
+		spinoffHolding = &models.Holding{
+			PortfolioID:  portfolio.ID,
+			Symbol:       newSymbol,
+			Quantity:     decimal.Zero,
+			CostBasis:    decimal.Zero,
+			AvgCostPrice: decimal.Zero,
+		}
+	}
+
+	// Add the spinoff shares
+	spinoffHolding.AddShares(spinoffQuantity, spinoffCostBasis)
+
+	if spinoffHolding.ID.String() == "00000000-0000-0000-0000-000000000000" || spinoffHolding.ID == [16]byte{} {
+		if err := s.holdingRepo.Create(spinoffHolding); err != nil {
+			return fmt.Errorf("failed to create spinoff holding: %w", err)
+		}
+	} else {
+		if err := s.holdingRepo.Update(spinoffHolding); err != nil {
+			return fmt.Errorf("failed to update spinoff holding: %w", err)
+		}
+	}
+
+	// 4. Reduce parent holding cost basis (parent retains 90% of cost basis)
+	parentHolding.CostBasis = parentHolding.CostBasis.Sub(spinoffCostBasis)
+	parentHolding.CalculateAvgCostPrice()
+
+	if err := s.holdingRepo.Update(parentHolding); err != nil {
+		return fmt.Errorf("failed to update parent holding: %w", err)
+	}
+
+	// 5. Create tax lots for spinoff shares
+	// Tax lots inherit the purchase dates from the parent company
+	parentTaxLots, err := s.taxLotRepo.FindByPortfolioIDAndSymbol(portfolioID, oldSymbol)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve parent tax lots: %w", err)
+	}
+
+	totalParentQuantity := decimal.Zero
+	for _, lot := range parentTaxLots {
+		totalParentQuantity = totalParentQuantity.Add(lot.Quantity)
+	}
+
+	for _, parentLot := range parentTaxLots {
+		// Allocate spinoff shares proportionally based on each lot's percentage of total
+		lotPercentage := parentLot.Quantity.Div(totalParentQuantity)
+		spinoffLotQuantity := spinoffQuantity.Mul(lotPercentage)
+		spinoffLotCostBasis := spinoffCostBasis.Mul(lotPercentage)
+
+		// Create new tax lot for spinoff with same purchase date as parent
+		spinoffLot := &models.TaxLot{
+			PortfolioID:   portfolio.ID,
+			Symbol:        newSymbol,
+			PurchaseDate:  parentLot.PurchaseDate, // Inherit purchase date for tax purposes
+			Quantity:      spinoffLotQuantity,
+			CostBasis:     spinoffLotCostBasis,
+			TransactionID: parentLot.TransactionID,
+		}
+
+		if err := s.taxLotRepo.Create(spinoffLot); err != nil {
+			return fmt.Errorf("failed to create spinoff tax lot: %w", err)
+		}
+
+		// Reduce parent lot cost basis
+		parentLot.CostBasis = parentLot.CostBasis.Sub(spinoffLotCostBasis)
+		if err := s.taxLotRepo.Update(parentLot); err != nil {
+			return fmt.Errorf("failed to update parent tax lot: %w", err)
+		}
+	}
+
+	// 6. Create SPINOFF transaction for audit trail
+	spinoffTransaction := &models.Transaction{
+		PortfolioID: portfolio.ID,
+		Type:        models.TransactionTypeSpinoff,
+		Symbol:      newSymbol,
+		Date:        date,
+		Quantity:    spinoffQuantity,
+		Price:       nil, // No price for spinoff transactions
+		Commission:  decimal.Zero,
+		Currency:    portfolio.BaseCurrency,
+		Notes:       fmt.Sprintf("Spinoff: received %s shares of %s from %s at %s ratio", spinoffQuantity.String(), newSymbol, oldSymbol, ratio.String()),
+	}
+
+	if err := s.transactionRepo.Create(spinoffTransaction); err != nil {
+		return fmt.Errorf("failed to create spinoff transaction: %w", err)
+	}
+
+	return nil
+}
+
+// ApplyTickerChange applies a ticker symbol change to a portfolio
+// This is when a company changes its ticker symbol but remains the same company
+// Example: Facebook (FB) changed to Meta (META)
+func (s *corporateActionService) ApplyTickerChange(
+	portfolioID, oldSymbol, newSymbol, userID string,
+	date time.Time,
+) error {
+	// Verify portfolio exists and belongs to user
+	portfolio, err := s.portfolioRepo.FindByID(portfolioID)
+	if err != nil {
+		return models.ErrPortfolioNotFound
+	}
+	if portfolio.UserID.String() != userID {
+		return models.ErrUnauthorizedAccess
+	}
+
+	// 1. Get holding for old symbol
+	oldHolding, err := s.holdingRepo.FindByPortfolioIDAndSymbol(portfolioID, oldSymbol)
+	if err != nil {
+		return fmt.Errorf("no holding found for symbol %s: %w", oldSymbol, err)
+	}
+
+	// 2. For ticker changes, everything stays the same except the symbol
+	// Quantity, cost basis, and average cost price all remain unchanged
+	quantity := oldHolding.Quantity
+	costBasis := oldHolding.CostBasis
+	avgCostPrice := oldHolding.AvgCostPrice
+
+	// 3. Get or create holding for new symbol
+	newHolding, err := s.holdingRepo.FindByPortfolioIDAndSymbol(portfolioID, newSymbol)
+	if err != nil {
+		// Create new holding with same values
+		newHolding = &models.Holding{
+			PortfolioID:  portfolio.ID,
+			Symbol:       newSymbol,
+			Quantity:     quantity,
+			CostBasis:    costBasis,
+			AvgCostPrice: avgCostPrice,
+		}
+		if err := s.holdingRepo.Create(newHolding); err != nil {
+			return fmt.Errorf("failed to create new holding: %w", err)
+		}
+	} else {
+		// If holding already exists, add to it
+		newHolding.AddShares(quantity, costBasis)
+		if err := s.holdingRepo.Update(newHolding); err != nil {
+			return fmt.Errorf("failed to update new holding: %w", err)
+		}
+	}
+
+	// 4. Update all tax lots - change symbol but keep everything else
+	oldTaxLots, err := s.taxLotRepo.FindByPortfolioIDAndSymbol(portfolioID, oldSymbol)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve tax lots: %w", err)
+	}
+
+	for _, lot := range oldTaxLots {
+		// Create new tax lot with new symbol but all other data preserved
+		newLot := &models.TaxLot{
+			PortfolioID:   portfolio.ID,
+			Symbol:        newSymbol,
+			PurchaseDate:  lot.PurchaseDate, // Preserve original purchase date
+			Quantity:      lot.Quantity,     // Same quantity
+			CostBasis:     lot.CostBasis,    // Same cost basis
+			TransactionID: lot.TransactionID,
+		}
+
+		if err := s.taxLotRepo.Create(newLot); err != nil {
+			return fmt.Errorf("failed to create new tax lot: %w", err)
+		}
+	}
+
+	// 5. Update all old transactions with the old symbol to use the new symbol
+	// This maintains historical accuracy
+	oldTransactions, err := s.transactionRepo.FindByPortfolioIDAndSymbol(portfolioID, oldSymbol)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve transactions: %w", err)
+	}
+
+	for _, txn := range oldTransactions {
+		txn.Symbol = newSymbol
+		if err := s.transactionRepo.Update(txn); err != nil {
+			return fmt.Errorf("failed to update transaction: %w", err)
+		}
+	}
+
+	// 6. Delete old holding and tax lots
+	if err := s.holdingRepo.DeleteByPortfolioIDAndSymbol(portfolioID, oldSymbol); err != nil {
+		return fmt.Errorf("failed to delete old holding: %w", err)
+	}
+
+	if err := s.taxLotRepo.DeleteByPortfolioIDAndSymbol(portfolioID, oldSymbol); err != nil {
+		return fmt.Errorf("failed to delete old tax lots: %w", err)
+	}
+
+	// 7. Create TICKER_CHANGE transaction for audit trail
+	tickerChangeTransaction := &models.Transaction{
+		PortfolioID: portfolio.ID,
+		Type:        models.TransactionTypeTickerChange,
+		Symbol:      newSymbol,
+		Date:        date,
+		Quantity:    quantity,
+		Price:       nil, // No price for ticker change
+		Commission:  decimal.Zero,
+		Currency:    portfolio.BaseCurrency,
+		Notes:       fmt.Sprintf("Ticker change: %s changed to %s", oldSymbol, newSymbol),
+	}
+
+	if err := s.transactionRepo.Create(tickerChangeTransaction); err != nil {
+		return fmt.Errorf("failed to create ticker change transaction: %w", err)
 	}
 
 	return nil

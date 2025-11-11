@@ -139,6 +139,7 @@ func TestTransaction_isValidTransactionType(t *testing.T) {
 		TransactionTypeMerger,
 		TransactionTypeSpinoff,
 		TransactionTypeDividendReinvest,
+		TransactionTypeTickerChange,
 	}
 
 	for _, tt := range validTypes {
