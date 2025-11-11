@@ -615,3 +615,436 @@ func TestCorporateActionService_ApplyMerger_Unauthorized(t *testing.T) {
 }
 
 // Removed: TestCorporateActionService_ApplyMerger_NotImplemented - no longer needed as functionality is implemented
+func TestCorporateActionService_ApplySpinoff_Success(t *testing.T) {
+	db := setupServiceTestDB(t)
+	user, portfolio := createServiceTestData(t, db)
+
+	// Create a holding and tax lots for parent company
+	parentHolding := &models.Holding{
+		PortfolioID:  portfolio.ID,
+		Symbol:       "AAPL",
+		Quantity:     decimal.NewFromInt(100),
+		CostBasis:    decimal.NewFromInt(10000),
+		AvgCostPrice: decimal.NewFromInt(100),
+	}
+	require.NoError(t, db.Create(parentHolding).Error)
+
+	// Create transaction for tracking
+	transaction := &models.Transaction{
+		PortfolioID: portfolio.ID,
+		Type:        models.TransactionTypeBuy,
+		Symbol:      "AAPL",
+		Quantity:    decimal.NewFromInt(100),
+		Price:       &[]decimal.Decimal{decimal.NewFromInt(100)}[0],
+		Date:        time.Now().UTC().Add(-30 * 24 * time.Hour),
+	}
+	require.NoError(t, db.Create(transaction).Error)
+
+	// Create tax lot
+	taxLot := &models.TaxLot{
+		PortfolioID:   portfolio.ID,
+		Symbol:        "AAPL",
+		PurchaseDate:  time.Now().UTC().Add(-30 * 24 * time.Hour),
+		Quantity:      decimal.NewFromInt(100),
+		CostBasis:     decimal.NewFromInt(10000),
+		TransactionID: transaction.ID,
+	}
+	require.NoError(t, db.Create(taxLot).Error)
+
+	corporateActionRepo := repository.NewCorporateActionRepository(db)
+	portfolioRepo := repository.NewPortfolioRepository(db)
+	transactionRepo := repository.NewTransactionRepository(db)
+	holdingRepo := repository.NewHoldingRepository(db)
+	taxLotRepo := repository.NewTaxLotRepository(db)
+
+	service := NewCorporateActionService(
+		corporateActionRepo,
+		portfolioRepo,
+		transactionRepo,
+		holdingRepo,
+		taxLotRepo,
+	)
+
+	// Apply spinoff: 0.5 shares of SPIN for every 1 share of AAPL
+	ratio := decimal.NewFromFloat(0.5)
+	err := service.ApplySpinoff(
+		portfolio.ID.String(),
+		"AAPL",
+		"SPIN",
+		user.ID.String(),
+		ratio,
+		time.Now().UTC(),
+	)
+
+	assert.NoError(t, err)
+
+	// Verify parent holding was updated (cost basis reduced by 10%)
+	parentUpdated, err := holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "AAPL")
+	assert.NoError(t, err)
+	assert.True(t, parentUpdated.Quantity.Equal(decimal.NewFromInt(100)))   // Quantity unchanged
+	assert.True(t, parentUpdated.CostBasis.Equal(decimal.NewFromInt(9000))) // 90% of original
+
+	// Verify spinoff holding was created
+	spinoffHolding, err := holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "SPIN")
+	assert.NoError(t, err)
+	assert.True(t, spinoffHolding.Quantity.Equal(decimal.NewFromInt(50)))    // 100 * 0.5
+	assert.True(t, spinoffHolding.CostBasis.Equal(decimal.NewFromInt(1000))) // 10% of original
+
+	// Verify spinoff tax lot was created
+	spinoffTaxLots, err := taxLotRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "SPIN")
+	assert.NoError(t, err)
+	assert.Len(t, spinoffTaxLots, 1)
+	assert.True(t, spinoffTaxLots[0].Quantity.Equal(decimal.NewFromInt(50)))
+	assert.Equal(t, taxLot.PurchaseDate.Unix(), spinoffTaxLots[0].PurchaseDate.Unix()) // Inherited purchase date
+
+	// Verify parent tax lot was updated (cost basis reduced)
+	parentTaxLots, err := taxLotRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "AAPL")
+	assert.NoError(t, err)
+	assert.Len(t, parentTaxLots, 1)
+	assert.True(t, parentTaxLots[0].CostBasis.Equal(decimal.NewFromInt(9000))) // Reduced by 10%
+}
+
+func TestCorporateActionService_ApplySpinoff_PortfolioNotFound(t *testing.T) {
+	db := setupServiceTestDB(t)
+	user, _ := createServiceTestData(t, db)
+
+	corporateActionRepo := repository.NewCorporateActionRepository(db)
+	portfolioRepo := repository.NewPortfolioRepository(db)
+	transactionRepo := repository.NewTransactionRepository(db)
+	holdingRepo := repository.NewHoldingRepository(db)
+	taxLotRepo := repository.NewTaxLotRepository(db)
+
+	service := NewCorporateActionService(
+		corporateActionRepo,
+		portfolioRepo,
+		transactionRepo,
+		holdingRepo,
+		taxLotRepo,
+	)
+
+	ratio := decimal.NewFromFloat(0.5)
+	err := service.ApplySpinoff(
+		"00000000-0000-0000-0000-000000000000",
+		"AAPL",
+		"SPIN",
+		user.ID.String(),
+		ratio,
+		time.Now().UTC(),
+	)
+
+	assert.Error(t, err)
+	assert.Equal(t, models.ErrPortfolioNotFound, err)
+}
+
+func TestCorporateActionService_ApplySpinoff_Unauthorized(t *testing.T) {
+	db := setupServiceTestDB(t)
+	_, portfolio := createServiceTestData(t, db)
+
+	otherUser := &models.User{
+		Email:        "other@example.com",
+		PasswordHash: "hash",
+	}
+	require.NoError(t, db.Create(otherUser).Error)
+
+	corporateActionRepo := repository.NewCorporateActionRepository(db)
+	portfolioRepo := repository.NewPortfolioRepository(db)
+	transactionRepo := repository.NewTransactionRepository(db)
+	holdingRepo := repository.NewHoldingRepository(db)
+	taxLotRepo := repository.NewTaxLotRepository(db)
+
+	service := NewCorporateActionService(
+		corporateActionRepo,
+		portfolioRepo,
+		transactionRepo,
+		holdingRepo,
+		taxLotRepo,
+	)
+
+	ratio := decimal.NewFromFloat(0.5)
+	err := service.ApplySpinoff(
+		portfolio.ID.String(),
+		"AAPL",
+		"SPIN",
+		otherUser.ID.String(),
+		ratio,
+		time.Now().UTC(),
+	)
+
+	assert.Error(t, err)
+	assert.Equal(t, models.ErrUnauthorizedAccess, err)
+}
+
+func TestCorporateActionService_ApplySpinoff_InvalidRatio(t *testing.T) {
+	db := setupServiceTestDB(t)
+	user, portfolio := createServiceTestData(t, db)
+
+	corporateActionRepo := repository.NewCorporateActionRepository(db)
+	portfolioRepo := repository.NewPortfolioRepository(db)
+	transactionRepo := repository.NewTransactionRepository(db)
+	holdingRepo := repository.NewHoldingRepository(db)
+	taxLotRepo := repository.NewTaxLotRepository(db)
+
+	service := NewCorporateActionService(
+		corporateActionRepo,
+		portfolioRepo,
+		transactionRepo,
+		holdingRepo,
+		taxLotRepo,
+	)
+
+	// Test with zero ratio
+	err := service.ApplySpinoff(
+		portfolio.ID.String(),
+		"AAPL",
+		"SPIN",
+		user.ID.String(),
+		decimal.Zero,
+		time.Now().UTC(),
+	)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid spinoff ratio")
+
+	// Test with negative ratio
+	err = service.ApplySpinoff(
+		portfolio.ID.String(),
+		"AAPL",
+		"SPIN",
+		user.ID.String(),
+		decimal.NewFromInt(-1),
+		time.Now().UTC(),
+	)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid spinoff ratio")
+}
+
+func TestCorporateActionService_ApplySpinoff_NoHolding(t *testing.T) {
+	db := setupServiceTestDB(t)
+	user, portfolio := createServiceTestData(t, db)
+
+	corporateActionRepo := repository.NewCorporateActionRepository(db)
+	portfolioRepo := repository.NewPortfolioRepository(db)
+	transactionRepo := repository.NewTransactionRepository(db)
+	holdingRepo := repository.NewHoldingRepository(db)
+	taxLotRepo := repository.NewTaxLotRepository(db)
+
+	service := NewCorporateActionService(
+		corporateActionRepo,
+		portfolioRepo,
+		transactionRepo,
+		holdingRepo,
+		taxLotRepo,
+	)
+
+	ratio := decimal.NewFromFloat(0.5)
+	err := service.ApplySpinoff(
+		portfolio.ID.String(),
+		"AAPL",
+		"SPIN",
+		user.ID.String(),
+		ratio,
+		time.Now().UTC(),
+	)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "no holding found")
+}
+
+func TestCorporateActionService_ApplyTickerChange_Success(t *testing.T) {
+	db := setupServiceTestDB(t)
+	user, portfolio := createServiceTestData(t, db)
+
+	// Create holding with old ticker
+	oldHolding := &models.Holding{
+		PortfolioID:  portfolio.ID,
+		Symbol:       "FB",
+		Quantity:     decimal.NewFromInt(100),
+		CostBasis:    decimal.NewFromInt(20000),
+		AvgCostPrice: decimal.NewFromInt(200),
+	}
+	require.NoError(t, db.Create(oldHolding).Error)
+
+	// Create transaction
+	transaction := &models.Transaction{
+		PortfolioID: portfolio.ID,
+		Type:        models.TransactionTypeBuy,
+		Symbol:      "FB",
+		Quantity:    decimal.NewFromInt(100),
+		Price:       &[]decimal.Decimal{decimal.NewFromInt(200)}[0],
+		Date:        time.Now().UTC().Add(-60 * 24 * time.Hour),
+	}
+	require.NoError(t, db.Create(transaction).Error)
+
+	// Create tax lot
+	taxLot := &models.TaxLot{
+		PortfolioID:   portfolio.ID,
+		Symbol:        "FB",
+		PurchaseDate:  time.Now().UTC().Add(-60 * 24 * time.Hour),
+		Quantity:      decimal.NewFromInt(100),
+		CostBasis:     decimal.NewFromInt(20000),
+		TransactionID: transaction.ID,
+	}
+	require.NoError(t, db.Create(taxLot).Error)
+
+	corporateActionRepo := repository.NewCorporateActionRepository(db)
+	portfolioRepo := repository.NewPortfolioRepository(db)
+	transactionRepo := repository.NewTransactionRepository(db)
+	holdingRepo := repository.NewHoldingRepository(db)
+	taxLotRepo := repository.NewTaxLotRepository(db)
+
+	service := NewCorporateActionService(
+		corporateActionRepo,
+		portfolioRepo,
+		transactionRepo,
+		holdingRepo,
+		taxLotRepo,
+	)
+
+	// Apply ticker change from FB to META
+	err := service.ApplyTickerChange(
+		portfolio.ID.String(),
+		"FB",
+		"META",
+		user.ID.String(),
+		time.Now().UTC(),
+	)
+
+	assert.NoError(t, err)
+
+	// Verify new holding was created with same values
+	newHolding, err := holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "META")
+	assert.NoError(t, err)
+	assert.True(t, newHolding.Quantity.Equal(decimal.NewFromInt(100)))     // Same quantity
+	assert.True(t, newHolding.CostBasis.Equal(decimal.NewFromInt(20000)))  // Same cost basis
+	assert.True(t, newHolding.AvgCostPrice.Equal(decimal.NewFromInt(200))) // Same avg price
+
+	// Verify tax lot was created with new symbol
+	newTaxLots, err := taxLotRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "META")
+	assert.NoError(t, err)
+	assert.Len(t, newTaxLots, 1)
+	assert.True(t, newTaxLots[0].Quantity.Equal(decimal.NewFromInt(100)))
+	assert.True(t, newTaxLots[0].CostBasis.Equal(decimal.NewFromInt(20000)))
+	assert.Equal(t, taxLot.PurchaseDate.Unix(), newTaxLots[0].PurchaseDate.Unix()) // Same purchase date
+
+	// Verify transactions were updated (original BUY transaction + new TICKER_CHANGE transaction)
+	updatedTransactions, err := transactionRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "META")
+	assert.NoError(t, err)
+	assert.Len(t, updatedTransactions, 2) // Original BUY + new TICKER_CHANGE
+	// Find the original BUY transaction
+	var buyTxn *models.Transaction
+	for _, txn := range updatedTransactions {
+		if txn.Type == models.TransactionTypeBuy {
+			buyTxn = txn
+			break
+		}
+	}
+	assert.NotNil(t, buyTxn)
+	assert.Equal(t, "META", buyTxn.Symbol)
+
+	// Verify old tax lots were deleted
+	oldTaxLots, err := taxLotRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "FB")
+	assert.NoError(t, err)
+	assert.Len(t, oldTaxLots, 0) // Old lots should be deleted
+
+	// Verify old holding was deleted
+	_, err = holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "FB")
+	assert.Error(t, err)
+	assert.Equal(t, models.ErrHoldingNotFound, err)
+}
+
+func TestCorporateActionService_ApplyTickerChange_PortfolioNotFound(t *testing.T) {
+	db := setupServiceTestDB(t)
+	user, _ := createServiceTestData(t, db)
+
+	corporateActionRepo := repository.NewCorporateActionRepository(db)
+	portfolioRepo := repository.NewPortfolioRepository(db)
+	transactionRepo := repository.NewTransactionRepository(db)
+	holdingRepo := repository.NewHoldingRepository(db)
+	taxLotRepo := repository.NewTaxLotRepository(db)
+
+	service := NewCorporateActionService(
+		corporateActionRepo,
+		portfolioRepo,
+		transactionRepo,
+		holdingRepo,
+		taxLotRepo,
+	)
+
+	err := service.ApplyTickerChange(
+		"00000000-0000-0000-0000-000000000000",
+		"FB",
+		"META",
+		user.ID.String(),
+		time.Now().UTC(),
+	)
+
+	assert.Error(t, err)
+	assert.Equal(t, models.ErrPortfolioNotFound, err)
+}
+
+func TestCorporateActionService_ApplyTickerChange_Unauthorized(t *testing.T) {
+	db := setupServiceTestDB(t)
+	_, portfolio := createServiceTestData(t, db)
+
+	otherUser := &models.User{
+		Email:        "other@example.com",
+		PasswordHash: "hash",
+	}
+	require.NoError(t, db.Create(otherUser).Error)
+
+	corporateActionRepo := repository.NewCorporateActionRepository(db)
+	portfolioRepo := repository.NewPortfolioRepository(db)
+	transactionRepo := repository.NewTransactionRepository(db)
+	holdingRepo := repository.NewHoldingRepository(db)
+	taxLotRepo := repository.NewTaxLotRepository(db)
+
+	service := NewCorporateActionService(
+		corporateActionRepo,
+		portfolioRepo,
+		transactionRepo,
+		holdingRepo,
+		taxLotRepo,
+	)
+
+	err := service.ApplyTickerChange(
+		portfolio.ID.String(),
+		"FB",
+		"META",
+		otherUser.ID.String(),
+		time.Now().UTC(),
+	)
+
+	assert.Error(t, err)
+	assert.Equal(t, models.ErrUnauthorizedAccess, err)
+}
+
+func TestCorporateActionService_ApplyTickerChange_NoHolding(t *testing.T) {
+	db := setupServiceTestDB(t)
+	user, portfolio := createServiceTestData(t, db)
+
+	corporateActionRepo := repository.NewCorporateActionRepository(db)
+	portfolioRepo := repository.NewPortfolioRepository(db)
+	transactionRepo := repository.NewTransactionRepository(db)
+	holdingRepo := repository.NewHoldingRepository(db)
+	taxLotRepo := repository.NewTaxLotRepository(db)
+
+	service := NewCorporateActionService(
+		corporateActionRepo,
+		portfolioRepo,
+		transactionRepo,
+		holdingRepo,
+		taxLotRepo,
+	)
+
+	err := service.ApplyTickerChange(
+		portfolio.ID.String(),
+		"FB",
+		"META",
+		user.ID.String(),
+		time.Now().UTC(),
+	)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "no holding found")
+}

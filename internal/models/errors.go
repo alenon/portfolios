@@ -17,6 +17,7 @@ var (
 	ErrInvalidCostBasisMethod = errors.New("invalid cost basis method")
 	ErrPortfolioDuplicateName = errors.New("portfolio with this name already exists")
 	ErrUnauthorizedAccess     = errors.New("unauthorized access to portfolio")
+	ErrInvalidPortfolioID     = errors.New("invalid portfolio ID")
 )
 
 // Transaction-related errors
@@ -43,4 +44,15 @@ var (
 var (
 	ErrCorporateActionNotFound    = errors.New("corporate action not found")
 	ErrInvalidCorporateActionType = errors.New("invalid corporate action type")
+)
+
+// Performance snapshot-related errors
+var (
+	ErrPerformanceSnapshotNotFound = errors.New("performance snapshot not found")
+)
+
+// General validation errors
+var (
+	ErrInvalidDate  = errors.New("invalid date")
+	ErrInvalidValue = errors.New("invalid value")
 )

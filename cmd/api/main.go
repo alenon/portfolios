@@ -70,6 +70,7 @@ func main() {
 	portfolioService := services.NewPortfolioService(portfolioRepo, userRepo)
 	transactionService := services.NewTransactionService(transactionRepo, portfolioRepo, holdingRepo)
 	taxLotService := services.NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
+	holdingService := services.NewHoldingService(holdingRepo, portfolioRepo)
 
 	// Initialize corporate action service
 	corporateActionService := services.NewCorporateActionService(
@@ -103,6 +104,7 @@ func main() {
 	portfolioHandler := handlers.NewPortfolioHandler(portfolioService)
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
 	taxLotHandler := handlers.NewTaxLotHandler(taxLotService)
+	holdingHandler := handlers.NewHoldingHandler(holdingService)
 	portfolioActionHandler := handlers.NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, corporateActionService)
 
 	// Set up Gin router
@@ -153,6 +155,10 @@ func main() {
 				// Transaction routes under portfolio
 				portfolios.POST("/:portfolio_id/transactions", transactionHandler.Create)
 				portfolios.GET("/:portfolio_id/transactions", transactionHandler.GetAll)
+
+				// Holding routes under portfolio
+				portfolios.GET("/:id/holdings", holdingHandler.GetAll)
+				portfolios.GET("/:id/holdings/:symbol", holdingHandler.GetBySymbol)
 			}
 
 			// Transaction routes

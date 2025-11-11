@@ -19,6 +19,7 @@ const (
 	TransactionTypeMerger           TransactionType = "MERGER"
 	TransactionTypeSpinoff          TransactionType = "SPINOFF"
 	TransactionTypeDividendReinvest TransactionType = "DIVIDEND_REINVEST"
+	TransactionTypeTickerChange     TransactionType = "TICKER_CHANGE"
 )
 
 // Transaction represents a portfolio transaction
@@ -96,7 +97,7 @@ func (t *Transaction) isValidTransactionType() bool {
 	switch t.Type {
 	case TransactionTypeBuy, TransactionTypeSell, TransactionTypeDividend,
 		TransactionTypeSplit, TransactionTypeMerger, TransactionTypeSpinoff,
-		TransactionTypeDividendReinvest:
+		TransactionTypeDividendReinvest, TransactionTypeTickerChange:
 		return true
 	default:
 		return false
