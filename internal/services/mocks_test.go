@@ -208,3 +208,103 @@ func (m *MockHoldingService) GetPortfolioValue(portfolioID, userID string, price
 	args := m.Called(portfolioID, userID, prices)
 	return args.Get(0).(decimal.Decimal), args.Error(1)
 }
+
+// MockTransactionRepository for testing
+type MockTransactionRepository struct {
+	mock.Mock
+}
+
+func (m *MockTransactionRepository) Create(transaction *models.Transaction) error {
+	args := m.Called(transaction)
+	return args.Error(0)
+}
+
+func (m *MockTransactionRepository) FindByID(id string) (*models.Transaction, error) {
+	args := m.Called(id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Transaction), args.Error(1)
+}
+
+func (m *MockTransactionRepository) FindByPortfolioID(portfolioID string) ([]*models.Transaction, error) {
+	args := m.Called(portfolioID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.Transaction), args.Error(1)
+}
+
+func (m *MockTransactionRepository) FindByPortfolioIDAndSymbol(portfolioID, symbol string) ([]*models.Transaction, error) {
+	args := m.Called(portfolioID, symbol)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.Transaction), args.Error(1)
+}
+
+func (m *MockTransactionRepository) FindByPortfolioIDWithFilters(portfolioID string, symbol *string, startDate, endDate *time.Time) ([]*models.Transaction, error) {
+	args := m.Called(portfolioID, symbol, startDate, endDate)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.Transaction), args.Error(1)
+}
+
+func (m *MockTransactionRepository) Update(transaction *models.Transaction) error {
+	args := m.Called(transaction)
+	return args.Error(0)
+}
+
+func (m *MockTransactionRepository) Delete(id string) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
+func (m *MockTransactionRepository) DeleteByImportBatchID(batchID string) error {
+	args := m.Called(batchID)
+	return args.Error(0)
+}
+
+// MockMarketDataService for testing
+type MockMarketDataService struct {
+	mock.Mock
+}
+
+func (m *MockMarketDataService) GetQuote(symbol string) (*Quote, error) {
+	args := m.Called(symbol)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*Quote), args.Error(1)
+}
+
+func (m *MockMarketDataService) GetQuotes(symbols []string) (map[string]*Quote, error) {
+	args := m.Called(symbols)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[string]*Quote), args.Error(1)
+}
+
+func (m *MockMarketDataService) GetHistoricalPrices(symbol string, startDate, endDate time.Time) ([]*HistoricalPrice, error) {
+	args := m.Called(symbol, startDate, endDate)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*HistoricalPrice), args.Error(1)
+}
+
+func (m *MockMarketDataService) GetExchangeRate(fromCurrency, toCurrency string) (decimal.Decimal, error) {
+	args := m.Called(fromCurrency, toCurrency)
+	return args.Get(0).(decimal.Decimal), args.Error(1)
+}
+
+func (m *MockMarketDataService) RefreshCache(symbol string) error {
+	args := m.Called(symbol)
+	return args.Error(0)
+}
+
+func (m *MockMarketDataService) ClearCache() {
+	m.Called()
+}

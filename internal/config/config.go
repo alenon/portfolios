@@ -11,11 +11,12 @@ import (
 
 // Config holds all application configuration
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
-	JWT      JWTConfig
-	SMTP     SMTPConfig
-	Security SecurityConfig
+	Server     ServerConfig
+	Database   DatabaseConfig
+	JWT        JWTConfig
+	SMTP       SMTPConfig
+	Security   SecurityConfig
+	MarketData MarketDataConfig
 }
 
 // ServerConfig holds server-related configuration
@@ -54,6 +55,12 @@ type SecurityConfig struct {
 	RateLimitDuration time.Duration
 }
 
+// MarketDataConfig holds market data provider configuration
+type MarketDataConfig struct {
+	Provider string
+	APIKey   string
+}
+
 // Load reads configuration from environment variables
 func Load() (*Config, error) {
 	// Load .env file if it exists (for local development)
@@ -85,6 +92,10 @@ func Load() (*Config, error) {
 		Security: SecurityConfig{
 			RateLimitRequests: getEnvAsInt("RATE_LIMIT_REQUESTS", 5),
 			RateLimitDuration: getEnvAsDuration("RATE_LIMIT_DURATION", 1*time.Minute),
+		},
+		MarketData: MarketDataConfig{
+			Provider: getEnv("MARKET_DATA_PROVIDER", "alphavantage"),
+			APIKey:   getEnv("MARKET_DATA_API_KEY", ""),
 		},
 	}
 

@@ -4,7 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Go project named "portfolios". The codebase is in early stages of development.
+This is a Go project named "portfolios" - a portfolio management backend application that helps retail investors track and analyze their stock market investments.
+
+### Project Context & Next Steps
+
+**IMPORTANT: Always read `NEXT_STEPS.md` at the start of each session to understand:**
+- What has been completed
+- What needs to be done next
+- Current priorities and recommendations
+- Recent changes and commit history
+
+**After completing any task, update `NEXT_STEPS.md` to:**
+- Mark completed items with [x]
+- Add any new tasks discovered during implementation
+- Update the "Current State" section with latest commit
+- Update the "Last Updated" timestamp
+
+This ensures continuity between sessions and helps track project progress.
 
 ## Development Setup
 
@@ -83,7 +99,49 @@ go mod verify
 
 ## Architecture Notes
 
-The project structure is not yet established. When developing:
-- Follow standard Go project layout conventions
-- Keep modules organized by domain or feature
-- Place reusable packages in appropriately named directories
+The project follows standard Go project layout with a clean architecture pattern:
+
+### Directory Structure
+```
+portfolios/
+├── cmd/api/              # Application entry point
+├── internal/
+│   ├── config/          # Configuration management
+│   ├── database/        # Database connection
+│   ├── dto/             # Data Transfer Objects (request/response)
+│   ├── handlers/        # HTTP request handlers
+│   ├── jobs/            # Background jobs
+│   ├── middleware/      # HTTP middleware
+│   ├── models/          # Database models
+│   ├── repository/      # Data access layer
+│   ├── services/        # Business logic
+│   └── utils/           # Utility functions
+├── migrations/          # Database migrations
+├── tests/               # Integration and security tests
+└── scripts/             # Utility scripts
+```
+
+### Architectural Patterns
+- **Service Layer:** Business logic in `internal/services/`
+- **Handler Layer:** HTTP handlers in `internal/handlers/`
+- **Repository Layer:** Data access in `internal/repository/`
+- **DTO Layer:** Request/response objects in `internal/dto/`
+- **Models:** Database models in `internal/models/`
+
+### Key Technologies
+- **Framework:** Gin web framework
+- **Database:** PostgreSQL 15+ with GORM ORM
+- **Authentication:** JWT with refresh tokens
+- **Migrations:** golang-migrate
+- **Market Data:** Alpha Vantage provider
+- **Logging:** zerolog
+
+### Development Guidelines
+- Write unit tests for all services (use mocks)
+- Write integration tests for critical flows
+- All services should have interfaces
+- Use dependency injection
+- Follow Go naming conventions
+- Keep handlers thin (delegate to services)
+- Validate input at handler level
+- Handle errors consistently

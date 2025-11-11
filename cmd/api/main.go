@@ -42,6 +42,7 @@ func main() {
 	taxLotRepo := repository.NewTaxLotRepository(db)
 	corporateActionRepo := repository.NewCorporateActionRepository(db)
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
+	performanceSnapshotRepo := repository.NewPerformanceSnapshotRepository(db)
 
 	// Initialize services
 	tokenService := services.NewTokenService(cfg.JWT.Secret)
@@ -71,6 +72,37 @@ func main() {
 	transactionService := services.NewTransactionService(transactionRepo, portfolioRepo, holdingRepo)
 	taxLotService := services.NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 	holdingService := services.NewHoldingService(holdingRepo, portfolioRepo)
+
+	// Initialize market data service
+	var marketDataService services.MarketDataService
+	if cfg.MarketData.APIKey != "" {
+		alphaVantageProvider := services.NewAlphaVantageProvider(cfg.MarketData.APIKey)
+		marketDataService = services.NewMarketDataService(alphaVantageProvider, 15*time.Minute)
+		log.Println("Market data service initialized with Alpha Vantage provider")
+	} else {
+		log.Println("Warning: Market data service not initialized (no API key provided)")
+	}
+
+	// Initialize performance snapshot service
+	performanceSnapshotService := services.NewPerformanceSnapshotService(
+		performanceSnapshotRepo,
+		portfolioRepo,
+		holdingRepo,
+	)
+
+	// Initialize performance analytics service (only if market data is available)
+	var performanceAnalyticsService services.PerformanceAnalyticsService
+	if marketDataService != nil {
+		performanceAnalyticsService = services.NewPerformanceAnalyticsService(
+			portfolioRepo,
+			transactionRepo,
+			performanceSnapshotRepo,
+			marketDataService,
+		)
+		log.Println("Performance analytics service initialized")
+	} else {
+		log.Println("Warning: Performance analytics service not initialized (requires market data)")
+	}
 
 	// Initialize corporate action service
 	corporateActionService := services.NewCorporateActionService(
@@ -106,6 +138,21 @@ func main() {
 	taxLotHandler := handlers.NewTaxLotHandler(taxLotService)
 	holdingHandler := handlers.NewHoldingHandler(holdingService)
 	portfolioActionHandler := handlers.NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, corporateActionService)
+
+	// Initialize performance handlers (only if analytics service is available)
+	var performanceAnalyticsHandler *handlers.PerformanceAnalyticsHandler
+	if performanceAnalyticsService != nil {
+		performanceAnalyticsHandler = handlers.NewPerformanceAnalyticsHandler(performanceAnalyticsService)
+	}
+
+	// Initialize market data handler (only if market data service is available)
+	var marketDataHandler *handlers.MarketDataHandler
+	if marketDataService != nil {
+		marketDataHandler = handlers.NewMarketDataHandler(marketDataService)
+	}
+
+	// Initialize performance snapshot handler
+	performanceSnapshotHandler := handlers.NewPerformanceSnapshotHandler(performanceSnapshotService)
 
 	// Set up Gin router
 	router := gin.Default()
@@ -159,6 +206,20 @@ func main() {
 				// Holding routes under portfolio
 				portfolios.GET("/:id/holdings", holdingHandler.GetAll)
 				portfolios.GET("/:id/holdings/:symbol", holdingHandler.GetBySymbol)
+
+				// Performance analytics routes (if available)
+				if performanceAnalyticsHandler != nil {
+					portfolios.GET("/:id/performance/metrics", performanceAnalyticsHandler.GetPerformanceMetrics)
+					portfolios.GET("/:id/performance/twr", performanceAnalyticsHandler.GetTWR)
+					portfolios.GET("/:id/performance/mwr", performanceAnalyticsHandler.GetMWR)
+					portfolios.GET("/:id/performance/annualized", performanceAnalyticsHandler.GetAnnualizedReturn)
+					portfolios.GET("/:id/performance/benchmark", performanceAnalyticsHandler.GetBenchmarkComparison)
+				}
+
+				// Performance snapshot routes
+				portfolios.GET("/:id/snapshots", performanceSnapshotHandler.GetSnapshots)
+				portfolios.GET("/:id/snapshots/range", performanceSnapshotHandler.GetSnapshotsByDateRange)
+				portfolios.GET("/:id/snapshots/latest", performanceSnapshotHandler.GetLatestSnapshot)
 			}
 
 			// Transaction routes
@@ -187,6 +248,18 @@ func main() {
 			v1.GET("/portfolios/:portfolio_id/actions/:action_id", portfolioActionHandler.GetActionByID)
 			v1.POST("/portfolios/:portfolio_id/actions/:action_id/approve", portfolioActionHandler.ApproveAction)
 			v1.POST("/portfolios/:portfolio_id/actions/:action_id/reject", portfolioActionHandler.RejectAction)
+
+			// Market data routes (if available)
+			if marketDataHandler != nil {
+				market := v1.Group("/market")
+				{
+					market.GET("/quote/:symbol", marketDataHandler.GetQuote)
+					market.POST("/quotes", marketDataHandler.GetQuotes)
+					market.GET("/history/:symbol", marketDataHandler.GetHistoricalPrices)
+					market.GET("/exchange", marketDataHandler.GetExchangeRate)
+					market.POST("/cache/clear", marketDataHandler.ClearCache)
+				}
+			}
 		}
 	}
 
