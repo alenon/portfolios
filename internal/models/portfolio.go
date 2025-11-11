@@ -18,15 +18,15 @@ const (
 
 // Portfolio represents a user's investment portfolio
 type Portfolio struct {
-	ID              uuid.UUID        `gorm:"type:uuid;primaryKey" json:"id"`
-	UserID          uuid.UUID        `gorm:"type:uuid;not null;index" json:"user_id" validate:"required"`
-	Name            string           `gorm:"type:varchar(255);not null" json:"name" validate:"required,min=1,max=255"`
-	Description     string           `gorm:"type:text" json:"description,omitempty"`
-	BaseCurrency    string           `gorm:"type:varchar(3);not null;default:'USD'" json:"base_currency" validate:"required,len=3"`
-	CostBasisMethod CostBasisMethod  `gorm:"type:varchar(20);not null;default:'FIFO'" json:"cost_basis_method" validate:"required,oneof=FIFO LIFO SPECIFIC_LOT"`
-	CreatedAt       time.Time        `json:"created_at"`
-	UpdatedAt       time.Time        `json:"updated_at"`
-	User            *User            `gorm:"foreignKey:UserID" json:"user,omitempty"`
+	ID              uuid.UUID       `gorm:"type:uuid;primaryKey" json:"id"`
+	UserID          uuid.UUID       `gorm:"type:uuid;not null;index" json:"user_id" validate:"required"`
+	Name            string          `gorm:"type:varchar(255);not null" json:"name" validate:"required,min=1,max=255"`
+	Description     string          `gorm:"type:text" json:"description,omitempty"`
+	BaseCurrency    string          `gorm:"type:varchar(3);not null;default:'USD'" json:"base_currency" validate:"required,len=3"`
+	CostBasisMethod CostBasisMethod `gorm:"type:varchar(20);not null;default:'FIFO'" json:"cost_basis_method" validate:"required,oneof=FIFO LIFO SPECIFIC_LOT"`
+	CreatedAt       time.Time       `json:"created_at"`
+	UpdatedAt       time.Time       `json:"updated_at"`
+	User            *User           `gorm:"foreignKey:UserID" json:"user,omitempty"`
 }
 
 // TableName specifies the table name for the Portfolio model

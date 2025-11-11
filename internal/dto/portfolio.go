@@ -10,10 +10,10 @@ import (
 
 // CreatePortfolioRequest represents the request to create a new portfolio
 type CreatePortfolioRequest struct {
-	Name            string                  `json:"name" binding:"required,min=1,max=255"`
-	Description     string                  `json:"description,omitempty"`
-	BaseCurrency    string                  `json:"base_currency" binding:"required,len=3"`
-	CostBasisMethod models.CostBasisMethod  `json:"cost_basis_method" binding:"required,oneof=FIFO LIFO SPECIFIC_LOT"`
+	Name            string                 `json:"name" binding:"required,min=1,max=255"`
+	Description     string                 `json:"description,omitempty"`
+	BaseCurrency    string                 `json:"base_currency" binding:"required,len=3"`
+	CostBasisMethod models.CostBasisMethod `json:"cost_basis_method" binding:"required,oneof=FIFO LIFO SPECIFIC_LOT"`
 }
 
 // UpdatePortfolioRequest represents the request to update a portfolio
@@ -24,14 +24,14 @@ type UpdatePortfolioRequest struct {
 
 // PortfolioResponse represents a portfolio in API responses
 type PortfolioResponse struct {
-	ID              uuid.UUID               `json:"id"`
-	UserID          uuid.UUID               `json:"user_id"`
-	Name            string                  `json:"name"`
-	Description     string                  `json:"description,omitempty"`
-	BaseCurrency    string                  `json:"base_currency"`
-	CostBasisMethod models.CostBasisMethod  `json:"cost_basis_method"`
-	CreatedAt       time.Time               `json:"created_at"`
-	UpdatedAt       time.Time               `json:"updated_at"`
+	ID              uuid.UUID              `json:"id"`
+	UserID          uuid.UUID              `json:"user_id"`
+	Name            string                 `json:"name"`
+	Description     string                 `json:"description,omitempty"`
+	BaseCurrency    string                 `json:"base_currency"`
+	CostBasisMethod models.CostBasisMethod `json:"cost_basis_method"`
+	CreatedAt       time.Time              `json:"created_at"`
+	UpdatedAt       time.Time              `json:"updated_at"`
 }
 
 // PortfolioListResponse represents a list of portfolios

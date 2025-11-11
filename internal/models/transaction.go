@@ -23,20 +23,20 @@ const (
 
 // Transaction represents a portfolio transaction
 type Transaction struct {
-	ID            uuid.UUID       `gorm:"type:uuid;primaryKey" json:"id"`
-	PortfolioID   uuid.UUID       `gorm:"type:uuid;not null;index" json:"portfolio_id" validate:"required"`
-	Type          TransactionType `gorm:"type:varchar(20);not null" json:"type" validate:"required"`
-	Symbol        string          `gorm:"type:varchar(20);not null;index" json:"symbol" validate:"required"`
-	Date          time.Time       `gorm:"not null;index" json:"date" validate:"required"`
-	Quantity      decimal.Decimal `gorm:"type:numeric(20,8);not null" json:"quantity" validate:"required"`
+	ID            uuid.UUID        `gorm:"type:uuid;primaryKey" json:"id"`
+	PortfolioID   uuid.UUID        `gorm:"type:uuid;not null;index" json:"portfolio_id" validate:"required"`
+	Type          TransactionType  `gorm:"type:varchar(20);not null" json:"type" validate:"required"`
+	Symbol        string           `gorm:"type:varchar(20);not null;index" json:"symbol" validate:"required"`
+	Date          time.Time        `gorm:"not null;index" json:"date" validate:"required"`
+	Quantity      decimal.Decimal  `gorm:"type:numeric(20,8);not null" json:"quantity" validate:"required"`
 	Price         *decimal.Decimal `gorm:"type:numeric(20,8)" json:"price,omitempty"`
-	Commission    decimal.Decimal `gorm:"type:numeric(20,8);not null;default:0" json:"commission"`
-	Currency      string          `gorm:"type:varchar(3);not null;default:'USD'" json:"currency"`
-	Notes         string          `gorm:"type:text" json:"notes,omitempty"`
-	ImportBatchID *uuid.UUID      `gorm:"type:uuid" json:"import_batch_id,omitempty"`
-	CreatedAt     time.Time       `json:"created_at"`
-	UpdatedAt     time.Time       `json:"updated_at"`
-	Portfolio     *Portfolio      `gorm:"foreignKey:PortfolioID" json:"portfolio,omitempty"`
+	Commission    decimal.Decimal  `gorm:"type:numeric(20,8);not null;default:0" json:"commission"`
+	Currency      string           `gorm:"type:varchar(3);not null;default:'USD'" json:"currency"`
+	Notes         string           `gorm:"type:text" json:"notes,omitempty"`
+	ImportBatchID *uuid.UUID       `gorm:"type:uuid" json:"import_batch_id,omitempty"`
+	CreatedAt     time.Time        `json:"created_at"`
+	UpdatedAt     time.Time        `json:"updated_at"`
+	Portfolio     *Portfolio       `gorm:"foreignKey:PortfolioID" json:"portfolio,omitempty"`
 }
 
 // TableName specifies the table name for the Transaction model
