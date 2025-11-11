@@ -259,10 +259,11 @@ func (s *transactionService) updateHoldings(transaction *models.Transaction, por
 	}
 
 	// Update existing holding
-	if transaction.Type == models.TransactionTypeBuy {
+	switch transaction.Type {
+	case models.TransactionTypeBuy:
 		totalCost := transaction.GetTotalCost()
 		holding.AddShares(transaction.Quantity, totalCost)
-	} else if transaction.Type == models.TransactionTypeSell {
+	case models.TransactionTypeSell:
 		// For FIFO, use average cost basis
 		costBasisForSale := holding.AvgCostPrice.Mul(transaction.Quantity)
 		if err := holding.RemoveShares(transaction.Quantity, costBasisForSale); err != nil {
