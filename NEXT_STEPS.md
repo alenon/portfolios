@@ -18,7 +18,12 @@ This document tracks the implementation roadmap for the portfolios backend appli
   - DTOs: 97.3% coverage (30+ tests for all conversion functions)
   - Middleware: 61.2% coverage (17 tests for auth, CORS, rate limiting)
   - Handlers: 68.4% coverage (23 tests for new handlers)
-  - Overall project coverage: 49.5%
+  - Services: 78.7% coverage (up from 57.2%)
+    - Performance Analytics: ~90% coverage (new comprehensive tests)
+    - Corporate Actions: CRUD methods at 100%, complex operations at 80%+
+  - Database: 40.5% coverage (new basic tests)
+  - Logger: 88.1% coverage (new comprehensive tests)
+  - Overall project coverage: 55.3% (up from 49.5%)
   - All tests passing with proper mocking and edge case handling
 
 ## 🔥 High Priority
@@ -195,10 +200,10 @@ The product spec describes a comprehensive CLI but none exists yet.
 ## 📝 Notes
 
 ### Current State
-- **Commit:** acce57e - Comprehensive test coverage improvements
-- **Branch:** `claude/implement-next-steps-011CV2X4zJNCdjMZFhrjzhbe`
+- **Commit:** [Latest] - Significantly improved unit test coverage
+- **Branch:** `claude/improve-unit-test-coverage-011CV2giUVatafZxoHSviR18`
 - **All tests passing:** ✅
-- **Test Coverage:** 49.5% overall (handlers: 68.4%, dto: 97.3%, middleware: 61.2%)
+- **Test Coverage:** 55.3% overall (services: 78.7%, dto: 97.3%, logger: 88.1%, models: 97.0%, utils: 96.9%)
 
 ### Environment Variables Needed
 ```bash
@@ -244,4 +249,12 @@ SMTP_FROM=noreply@example.com
 ---
 
 *Last Updated: 2025-11-11*
-*Last Commit: test: add comprehensive tests for DTOs, handlers, and middleware*
+*Last Commit: test: improve unit test coverage from 49.5% to 55.3%*
+
+### Latest Test Coverage Improvements
+- Added comprehensive tests for `performance_analytics_service.go` (0% → ~90%)
+- Added all CRUD method tests for `corporate_action_service.go` (0% → 100%)
+- Added complex corporate action tests (ApplySpinoff, ApplyTickerChange)
+- Added database package tests (0% → 40.5%)
+- Added logger package tests (0% → 88.1%)
+- Services package improved from 57.2% to 78.7% coverage
