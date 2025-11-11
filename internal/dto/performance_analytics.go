@@ -3,7 +3,6 @@ package dto
 import (
 	"time"
 
-	"github.com/lenon/portfolios/internal/services"
 	"github.com/shopspring/decimal"
 )
 
@@ -84,8 +83,8 @@ type BenchmarkComparisonResponse struct {
 	Outperformance      decimal.Decimal `json:"outperformance"`
 }
 
-// ToPerformanceMetricsResponse converts service result to DTO
-func ToPerformanceMetricsResponse(metrics *services.PerformanceMetrics) *PerformanceMetricsResponse {
+// ToPerformanceMetricsResponse converts PerformanceMetrics to response DTO
+func ToPerformanceMetricsResponse(metrics *PerformanceMetrics) *PerformanceMetricsResponse {
 	if metrics == nil {
 		return nil
 	}
@@ -107,8 +106,8 @@ func ToPerformanceMetricsResponse(metrics *services.PerformanceMetrics) *Perform
 	}
 }
 
-// ToTWRResponse converts service result to DTO
-func ToTWRResponse(twr *services.TWRResult) *TWRResponse {
+// ToTWRResponse converts TWRResult to response DTO
+func ToTWRResponse(twr *TWRResult) *TWRResponse {
 	if twr == nil {
 		return nil
 	}
@@ -125,8 +124,8 @@ func ToTWRResponse(twr *services.TWRResult) *TWRResponse {
 	}
 }
 
-// ToMWRResponse converts service result to DTO
-func ToMWRResponse(mwr *services.MWRResult) *MWRResponse {
+// ToMWRResponse converts MWRResult to response DTO
+func ToMWRResponse(mwr *MWRResult) *MWRResponse {
 	if mwr == nil {
 		return nil
 	}
@@ -143,8 +142,8 @@ func ToMWRResponse(mwr *services.MWRResult) *MWRResponse {
 	}
 }
 
-// ToAnnualizedReturnResponse converts service result to DTO
-func ToAnnualizedReturnResponse(result *services.AnnualizedReturnResult) *AnnualizedReturnResponse {
+// ToAnnualizedReturnResponse converts AnnualizedReturnResult to response DTO
+func ToAnnualizedReturnResponse(result *AnnualizedReturnResult) *AnnualizedReturnResponse {
 	if result == nil {
 		return nil
 	}
@@ -159,8 +158,8 @@ func ToAnnualizedReturnResponse(result *services.AnnualizedReturnResult) *Annual
 	}
 }
 
-// ToBenchmarkComparisonResponse converts service result to DTO
-func ToBenchmarkComparisonResponse(comparison *services.BenchmarkComparisonResult) *BenchmarkComparisonResponse {
+// ToBenchmarkComparisonResponse converts BenchmarkComparisonResult to response DTO
+func ToBenchmarkComparisonResponse(comparison *BenchmarkComparisonResult) *BenchmarkComparisonResponse {
 	if comparison == nil {
 		return nil
 	}

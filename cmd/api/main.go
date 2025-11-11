@@ -121,6 +121,13 @@ func main() {
 		portfolioActionRepo,
 	)
 
+	// Initialize CSV import service
+	csvImportService := services.NewCSVImportService(
+		transactionRepo,
+		portfolioRepo,
+		holdingRepo,
+	)
+
 	// Initialize background job scheduler
 	scheduler := jobs.NewScheduler()
 	corporateActionJob := jobs.NewCorporateActionDetectionJob(corporateActionMonitor)
@@ -153,6 +160,9 @@ func main() {
 
 	// Initialize performance snapshot handler
 	performanceSnapshotHandler := handlers.NewPerformanceSnapshotHandler(performanceSnapshotService)
+
+	// Initialize CSV import handler
+	importHandler := handlers.NewImportHandler(csvImportService)
 
 	// Set up Gin router
 	router := gin.Default()
@@ -202,6 +212,12 @@ func main() {
 				// Transaction routes under portfolio
 				portfolios.POST("/:portfolio_id/transactions", transactionHandler.Create)
 				portfolios.GET("/:portfolio_id/transactions", transactionHandler.GetAll)
+
+				// CSV import routes
+				portfolios.POST("/:id/transactions/import/csv", importHandler.ImportCSV)
+				portfolios.POST("/:id/transactions/import/bulk", importHandler.ImportBulk)
+				portfolios.GET("/:id/imports/batches", importHandler.GetImportBatches)
+				portfolios.DELETE("/:id/imports/batches/:batch_id", importHandler.DeleteImportBatch)
 
 				// Holding routes under portfolio
 				portfolios.GET("/:id/holdings", holdingHandler.GetAll)
