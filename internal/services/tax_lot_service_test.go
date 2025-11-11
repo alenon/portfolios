@@ -10,14 +10,16 @@ import (
 	"github.com/lenon/portfolios/internal/models"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestNewTaxLotService(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	assert.NotNil(t, service)
 }
@@ -26,8 +28,9 @@ func TestTaxLotService_GetByID_Success(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	portfolioID := uuid.New()
@@ -62,8 +65,9 @@ func TestTaxLotService_GetByID_TaxLotNotFound(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	taxLotID := uuid.New().String()
 	userID := uuid.New().String()
@@ -80,8 +84,9 @@ func TestTaxLotService_GetByID_PortfolioNotFound(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	portfolioID := uuid.New()
@@ -108,8 +113,9 @@ func TestTaxLotService_GetByID_Unauthorized(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	otherUserID := uuid.New()
@@ -143,8 +149,9 @@ func TestTaxLotService_GetByPortfolioID_Success(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	portfolioID := uuid.New()
@@ -185,8 +192,9 @@ func TestTaxLotService_GetByPortfolioID_Unauthorized(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	otherUserID := uuid.New()
@@ -211,8 +219,9 @@ func TestTaxLotService_GetByPortfolioIDAndSymbol_Success(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	portfolioID := uuid.New()
@@ -249,8 +258,9 @@ func TestTaxLotService_AllocateSale_FIFO(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	portfolioID := uuid.New()
@@ -315,8 +325,9 @@ func TestTaxLotService_AllocateSale_LIFO(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	portfolioID := uuid.New()
@@ -376,8 +387,9 @@ func TestTaxLotService_AllocateSale_InsufficientShares(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	portfolioID := uuid.New()
@@ -422,8 +434,9 @@ func TestTaxLotService_AllocateSale_NoTaxLots(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	portfolioID := uuid.New()
@@ -457,8 +470,9 @@ func TestTaxLotService_IdentifyTaxLossOpportunities_Success(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	portfolioID := uuid.New()
@@ -501,8 +515,9 @@ func TestTaxLotService_IdentifyTaxLossOpportunities_Unauthorized(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	otherUserID := uuid.New()
@@ -532,19 +547,25 @@ func TestTaxLotService_GenerateTaxReport_Success(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	portfolioID := uuid.New()
 
 	portfolio := &models.Portfolio{
-		ID:     portfolioID,
-		UserID: userID,
-		Name:   "Test Portfolio",
+		ID:              portfolioID,
+		UserID:          userID,
+		Name:            "Test Portfolio",
+		CostBasisMethod: models.CostBasisFIFO,
 	}
 
 	portfolioRepo.On("FindByID", portfolioID.String()).Return(portfolio, nil)
+
+	// Mock the transaction repository call
+	var emptyTransactions []*models.Transaction
+	transactionRepo.On("FindByPortfolioIDWithFilters", portfolioID.String(), (*string)(nil), mock.Anything, mock.Anything).Return(emptyTransactions, nil)
 
 	report, err := service.GenerateTaxReport(
 		portfolioID.String(),
@@ -559,14 +580,16 @@ func TestTaxLotService_GenerateTaxReport_Success(t *testing.T) {
 	assert.NotNil(t, report.LongTermGains)
 
 	portfolioRepo.AssertExpectations(t)
+	transactionRepo.AssertExpectations(t)
 }
 
 func TestTaxLotService_GenerateTaxReport_PortfolioNotFound(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	portfolioID := uuid.New()
@@ -589,8 +612,9 @@ func TestTaxLotService_GenerateTaxReport_Unauthorized(t *testing.T) {
 	taxLotRepo := mocks.NewTaxLotRepository(t)
 	portfolioRepo := mocks.NewPortfolioRepository(t)
 	holdingRepo := mocks.NewHoldingRepository(t)
+	transactionRepo := mocks.NewTransactionRepository(t)
 
-	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
 	userID := uuid.New()
 	otherUserID := uuid.New()

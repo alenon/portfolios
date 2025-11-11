@@ -16,8 +16,9 @@ import (
 
 // PortfolioActionHandler handles portfolio action-related HTTP requests
 type PortfolioActionHandler struct {
-	portfolioActionRepo repository.PortfolioActionRepository
-	portfolioRepo       repository.PortfolioRepository
+	portfolioActionRepo    repository.PortfolioActionRepository
+	portfolioRepo          repository.PortfolioRepository
+	corporateActionService CorporateActionService
 }
 
 // CorporateActionService interface for applying actions
@@ -31,10 +32,12 @@ type CorporateActionService interface {
 func NewPortfolioActionHandler(
 	portfolioActionRepo repository.PortfolioActionRepository,
 	portfolioRepo repository.PortfolioRepository,
+	corporateActionService CorporateActionService,
 ) *PortfolioActionHandler {
 	return &PortfolioActionHandler{
-		portfolioActionRepo: portfolioActionRepo,
-		portfolioRepo:       portfolioRepo,
+		portfolioActionRepo:    portfolioActionRepo,
+		portfolioRepo:          portfolioRepo,
+		corporateActionService: corporateActionService,
 	}
 }
 
@@ -282,8 +285,55 @@ func (h *PortfolioActionHandler) ApproveAction(c *gin.Context) {
 		return
 	}
 
-	// TODO: Optionally auto-apply the action after approval
-	// For now, we just mark it as approved and require manual application
+	// Auto-apply the action after approval
+	if action.CorporateAction != nil && h.corporateActionService != nil {
+		var applyErr error
+		switch action.CorporateAction.Type {
+		case models.CorporateActionTypeSplit:
+			if action.CorporateAction.Ratio != nil {
+				applyErr = h.corporateActionService.ApplyStockSplit(
+					portfolioID,
+					action.AffectedSymbol,
+					userID.(string),
+					*action.CorporateAction.Ratio,
+					action.CorporateAction.Date,
+				)
+			}
+		case models.CorporateActionTypeDividend:
+			if action.CorporateAction.Amount != nil {
+				applyErr = h.corporateActionService.ApplyDividend(
+					portfolioID,
+					action.AffectedSymbol,
+					userID.(string),
+					*action.CorporateAction.Amount,
+					action.CorporateAction.Date,
+				)
+			}
+		case models.CorporateActionTypeMerger:
+			if action.CorporateAction.Ratio != nil && action.CorporateAction.NewSymbol != nil {
+				applyErr = h.corporateActionService.ApplyMerger(
+					portfolioID,
+					action.AffectedSymbol,
+					*action.CorporateAction.NewSymbol,
+					userID.(string),
+					*action.CorporateAction.Ratio,
+					action.CorporateAction.Date,
+				)
+			}
+		}
+
+		// If application was successful, mark the action as applied
+		if applyErr == nil {
+			now := time.Now().UTC()
+			action.AppliedAt = &now
+			// Attempt to update the action as applied
+			// We intentionally ignore errors here - the action is already approved
+			// In production, this would be logged to an error tracking system
+			_ = h.portfolioActionRepo.Update(action)
+		}
+		// If there was an error applying, we don't fail the approval
+		// The action remains approved but not applied, allowing manual retry
+	}
 
 	response := h.toPortfolioActionResponse(action)
 	c.JSON(http.StatusOK, response)

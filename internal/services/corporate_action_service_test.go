@@ -472,36 +472,7 @@ func TestCorporateActionService_ApplyStockSplit_Unauthorized(t *testing.T) {
 	assert.Equal(t, models.ErrUnauthorizedAccess, err)
 }
 
-func TestCorporateActionService_ApplyStockSplit_NotImplemented(t *testing.T) {
-	db := setupServiceTestDB(t)
-	user, portfolio := createServiceTestData(t, db)
-
-	corporateActionRepo := repository.NewCorporateActionRepository(db)
-	portfolioRepo := repository.NewPortfolioRepository(db)
-	transactionRepo := repository.NewTransactionRepository(db)
-	holdingRepo := repository.NewHoldingRepository(db)
-	taxLotRepo := repository.NewTaxLotRepository(db)
-
-	service := NewCorporateActionService(
-		corporateActionRepo,
-		portfolioRepo,
-		transactionRepo,
-		holdingRepo,
-		taxLotRepo,
-	)
-
-	ratio := decimal.NewFromFloat(2.0)
-	err := service.ApplyStockSplit(
-		portfolio.ID.String(),
-		"AAPL",
-		user.ID.String(),
-		ratio,
-		time.Now().UTC(),
-	)
-
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not yet implemented")
-}
+// Removed: TestCorporateActionService_ApplyStockSplit_NotImplemented - no longer needed as functionality is implemented
 
 func TestCorporateActionService_ApplyDividend_PortfolioNotFound(t *testing.T) {
 	db := setupServiceTestDB(t)
@@ -571,36 +542,7 @@ func TestCorporateActionService_ApplyDividend_Unauthorized(t *testing.T) {
 	assert.Equal(t, models.ErrUnauthorizedAccess, err)
 }
 
-func TestCorporateActionService_ApplyDividend_NotImplemented(t *testing.T) {
-	db := setupServiceTestDB(t)
-	user, portfolio := createServiceTestData(t, db)
-
-	corporateActionRepo := repository.NewCorporateActionRepository(db)
-	portfolioRepo := repository.NewPortfolioRepository(db)
-	transactionRepo := repository.NewTransactionRepository(db)
-	holdingRepo := repository.NewHoldingRepository(db)
-	taxLotRepo := repository.NewTaxLotRepository(db)
-
-	service := NewCorporateActionService(
-		corporateActionRepo,
-		portfolioRepo,
-		transactionRepo,
-		holdingRepo,
-		taxLotRepo,
-	)
-
-	amount := decimal.NewFromFloat(0.25)
-	err := service.ApplyDividend(
-		portfolio.ID.String(),
-		"AAPL",
-		user.ID.String(),
-		amount,
-		time.Now().UTC(),
-	)
-
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not yet implemented")
-}
+// Removed: TestCorporateActionService_ApplyDividend_NotImplemented - no longer needed as functionality is implemented
 
 func TestCorporateActionService_ApplyMerger_PortfolioNotFound(t *testing.T) {
 	db := setupServiceTestDB(t)
@@ -672,34 +614,4 @@ func TestCorporateActionService_ApplyMerger_Unauthorized(t *testing.T) {
 	assert.Equal(t, models.ErrUnauthorizedAccess, err)
 }
 
-func TestCorporateActionService_ApplyMerger_NotImplemented(t *testing.T) {
-	db := setupServiceTestDB(t)
-	user, portfolio := createServiceTestData(t, db)
-
-	corporateActionRepo := repository.NewCorporateActionRepository(db)
-	portfolioRepo := repository.NewPortfolioRepository(db)
-	transactionRepo := repository.NewTransactionRepository(db)
-	holdingRepo := repository.NewHoldingRepository(db)
-	taxLotRepo := repository.NewTaxLotRepository(db)
-
-	service := NewCorporateActionService(
-		corporateActionRepo,
-		portfolioRepo,
-		transactionRepo,
-		holdingRepo,
-		taxLotRepo,
-	)
-
-	ratio := decimal.NewFromFloat(1.5)
-	err := service.ApplyMerger(
-		portfolio.ID.String(),
-		"AAPL",
-		"XYZ",
-		user.ID.String(),
-		ratio,
-		time.Now().UTC(),
-	)
-
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not yet implemented")
-}
+// Removed: TestCorporateActionService_ApplyMerger_NotImplemented - no longer needed as functionality is implemented

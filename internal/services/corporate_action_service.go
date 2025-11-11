@@ -124,7 +124,6 @@ func (s *corporateActionService) Delete(id string) error {
 }
 
 // ApplyStockSplit applies a stock split to a portfolio
-// TODO: Implement full stock split logic
 func (s *corporateActionService) ApplyStockSplit(
 	portfolioID, symbol, userID string,
 	ratio decimal.Decimal,
@@ -139,18 +138,72 @@ func (s *corporateActionService) ApplyStockSplit(
 		return models.ErrUnauthorizedAccess
 	}
 
-	// TODO: Implement stock split logic:
-	// 1. Get all holdings for the symbol
-	// 2. Multiply quantities by split ratio
-	// 3. Divide cost basis per share by split ratio
-	// 4. Update all tax lots
-	// 5. Create a SPLIT transaction for audit trail
+	// Validate split ratio
+	if ratio.LessThanOrEqual(decimal.Zero) {
+		return fmt.Errorf("invalid split ratio: must be greater than 0")
+	}
 
-	return fmt.Errorf("stock split application not yet implemented")
+	// 1. Get holding for the symbol
+	holding, err := s.holdingRepo.FindByPortfolioIDAndSymbol(portfolioID, symbol)
+	if err != nil {
+		return fmt.Errorf("no holding found for symbol %s: %w", symbol, err)
+	}
+
+	// 2. Multiply quantity by split ratio, keep total cost basis the same
+	// Example: 4:1 split of 100 shares @ $180/share
+	// Before: 100 shares, $18,000 cost basis, $180 avg cost
+	// After: 400 shares, $18,000 cost basis, $45 avg cost
+	oldQuantity := holding.Quantity
+	newQuantity := holding.Quantity.Mul(ratio)
+
+	holding.Quantity = newQuantity
+	// Cost basis stays the same (total investment doesn't change)
+	// But avg cost per share decreases
+	holding.CalculateAvgCostPrice()
+
+	if err := s.holdingRepo.Update(holding); err != nil {
+		return fmt.Errorf("failed to update holding: %w", err)
+	}
+
+	// 3. Update all tax lots for this symbol
+	taxLots, err := s.taxLotRepo.FindByPortfolioIDAndSymbol(portfolioID, symbol)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve tax lots: %w", err)
+	}
+
+	for _, lot := range taxLots {
+		// Multiply quantity by split ratio
+		lot.Quantity = lot.Quantity.Mul(ratio)
+		// Cost basis stays the same for each lot
+		// This automatically adjusts the per-share cost
+
+		if err := s.taxLotRepo.Update(lot); err != nil {
+			return fmt.Errorf("failed to update tax lot: %w", err)
+		}
+	}
+
+	// 4. Create a SPLIT transaction for audit trail
+	splitTransaction := &models.Transaction{
+		PortfolioID: portfolio.ID,
+		Type:        models.TransactionTypeSplit,
+		Symbol:      symbol,
+		Date:        date,
+		Quantity:    newQuantity.Sub(oldQuantity), // Additional shares received
+		Price:       nil,                          // No price for splits
+		Commission:  decimal.Zero,
+		Currency:    portfolio.BaseCurrency,
+		Notes:       fmt.Sprintf("Stock split: %s ratio applied", ratio.String()),
+	}
+
+	if err := s.transactionRepo.Create(splitTransaction); err != nil {
+		return fmt.Errorf("failed to create split transaction: %w", err)
+	}
+
+	return nil
 }
 
-// ApplyDividend applies a dividend to a portfolio
-// TODO: Implement full dividend logic
+// ApplyDividend applies a cash dividend to a portfolio
+// Note: For dividend reinvestment (DRIP), use the transaction service to create a buy transaction
 func (s *corporateActionService) ApplyDividend(
 	portfolioID, symbol, userID string,
 	amount decimal.Decimal,
@@ -165,17 +218,46 @@ func (s *corporateActionService) ApplyDividend(
 		return models.ErrUnauthorizedAccess
 	}
 
-	// TODO: Implement dividend logic:
-	// 1. Get holding for the symbol
-	// 2. Calculate total dividend amount (quantity * per-share dividend)
-	// 3. Create a DIVIDEND transaction
-	// 4. If DRIP, create additional shares and tax lots
+	// Validate dividend amount
+	if amount.LessThanOrEqual(decimal.Zero) {
+		return fmt.Errorf("invalid dividend amount: must be greater than 0")
+	}
 
-	return fmt.Errorf("dividend application not yet implemented")
+	// 1. Get holding for the symbol to verify it exists
+	_, err = s.holdingRepo.FindByPortfolioIDAndSymbol(portfolioID, symbol)
+	if err != nil {
+		return fmt.Errorf("no holding found for symbol %s: %w", symbol, err)
+	}
+
+	// 2. Create a DIVIDEND transaction for record keeping
+	// Note: Cash dividends don't affect share count or cost basis,
+	// they just represent income received
+	dividendTransaction := &models.Transaction{
+		PortfolioID: portfolio.ID,
+		Type:        models.TransactionTypeDividend,
+		Symbol:      symbol,
+		Date:        date,
+		Quantity:    amount, // For dividends, quantity represents the total amount received
+		Price:       nil,    // No price for dividend transactions
+		Commission:  decimal.Zero,
+		Currency:    portfolio.BaseCurrency,
+		Notes:       fmt.Sprintf("Cash dividend: %s", amount.String()),
+	}
+
+	if err := s.transactionRepo.Create(dividendTransaction); err != nil {
+		return fmt.Errorf("failed to create dividend transaction: %w", err)
+	}
+
+	// Note: For dividend reinvestment (DRIP), the calling code should:
+	// 1. Calculate shares purchased: dividend amount / current share price
+	// 2. Call transaction service to create a DIVIDEND_REINVEST buy transaction
+	// 3. That will automatically create tax lots and update holdings
+
+	return nil
 }
 
 // ApplyMerger applies a merger/acquisition to a portfolio
-// TODO: Implement full merger logic
+// This handles stock-for-stock mergers where oldSymbol is converted to newSymbol
 func (s *corporateActionService) ApplyMerger(
 	portfolioID, oldSymbol, newSymbol, userID string,
 	ratio decimal.Decimal,
@@ -190,13 +272,99 @@ func (s *corporateActionService) ApplyMerger(
 		return models.ErrUnauthorizedAccess
 	}
 
-	// TODO: Implement merger logic:
-	// 1. Get all holdings for old symbol
-	// 2. Close out old symbol holdings
-	// 3. Create new holdings in new symbol based on merger ratio
-	// 4. Transfer cost basis proportionally
-	// 5. Update/create tax lots for new symbol
-	// 6. Create MERGER transaction for audit trail
+	// Validate merger ratio
+	if ratio.LessThanOrEqual(decimal.Zero) {
+		return fmt.Errorf("invalid merger ratio: must be greater than 0")
+	}
 
-	return fmt.Errorf("merger application not yet implemented")
+	// 1. Get holding for old symbol
+	oldHolding, err := s.holdingRepo.FindByPortfolioIDAndSymbol(portfolioID, oldSymbol)
+	if err != nil {
+		return fmt.Errorf("no holding found for symbol %s: %w", oldSymbol, err)
+	}
+
+	// 2. Calculate new position
+	// Example: 1.5:1 ratio means 100 shares of A become 150 shares of B
+	oldQuantity := oldHolding.Quantity
+	newQuantity := oldQuantity.Mul(ratio)
+	totalCostBasis := oldHolding.CostBasis // Cost basis transfers to new symbol
+
+	// 3. Get or create holding for new symbol
+	newHolding, err := s.holdingRepo.FindByPortfolioIDAndSymbol(portfolioID, newSymbol)
+	if err != nil {
+		// Create new holding if it doesn't exist
+		newHolding = &models.Holding{
+			PortfolioID:  portfolio.ID,
+			Symbol:       newSymbol,
+			Quantity:     decimal.Zero,
+			CostBasis:    decimal.Zero,
+			AvgCostPrice: decimal.Zero,
+		}
+	}
+
+	// Add the converted shares to the new holding
+	newHolding.AddShares(newQuantity, totalCostBasis)
+
+	if newHolding.ID.String() == "00000000-0000-0000-0000-000000000000" || newHolding.ID == [16]byte{} {
+		if err := s.holdingRepo.Create(newHolding); err != nil {
+			return fmt.Errorf("failed to create new holding: %w", err)
+		}
+	} else {
+		if err := s.holdingRepo.Update(newHolding); err != nil {
+			return fmt.Errorf("failed to update new holding: %w", err)
+		}
+	}
+
+	// 4. Update tax lots - convert old symbol lots to new symbol
+	oldTaxLots, err := s.taxLotRepo.FindByPortfolioIDAndSymbol(portfolioID, oldSymbol)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve tax lots: %w", err)
+	}
+
+	for _, lot := range oldTaxLots {
+		// Calculate new quantity based on merger ratio
+		newLotQuantity := lot.Quantity.Mul(ratio)
+
+		// Create new tax lot for new symbol with preserved purchase date
+		newLot := &models.TaxLot{
+			PortfolioID:   portfolio.ID,
+			Symbol:        newSymbol,
+			PurchaseDate:  lot.PurchaseDate, // Preserve original purchase date for tax purposes
+			Quantity:      newLotQuantity,
+			CostBasis:     lot.CostBasis, // Cost basis transfers
+			TransactionID: lot.TransactionID,
+		}
+
+		if err := s.taxLotRepo.Create(newLot); err != nil {
+			return fmt.Errorf("failed to create new tax lot: %w", err)
+		}
+	}
+
+	// 5. Delete old holding and tax lots
+	if err := s.holdingRepo.DeleteByPortfolioIDAndSymbol(portfolioID, oldSymbol); err != nil {
+		return fmt.Errorf("failed to delete old holding: %w", err)
+	}
+
+	if err := s.taxLotRepo.DeleteByPortfolioIDAndSymbol(portfolioID, oldSymbol); err != nil {
+		return fmt.Errorf("failed to delete old tax lots: %w", err)
+	}
+
+	// 6. Create MERGER transaction for audit trail
+	mergerTransaction := &models.Transaction{
+		PortfolioID: portfolio.ID,
+		Type:        models.TransactionTypeMerger,
+		Symbol:      newSymbol,
+		Date:        date,
+		Quantity:    newQuantity,
+		Price:       nil, // No price for merger transactions
+		Commission:  decimal.Zero,
+		Currency:    portfolio.BaseCurrency,
+		Notes:       fmt.Sprintf("Merger: %s converted to %s at %s ratio (%s shares became %s shares)", oldSymbol, newSymbol, ratio.String(), oldQuantity.String(), newQuantity.String()),
+	}
+
+	if err := s.transactionRepo.Create(mergerTransaction); err != nil {
+		return fmt.Errorf("failed to create merger transaction: %w", err)
+	}
+
+	return nil
 }
