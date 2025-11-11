@@ -402,3 +402,169 @@ func TestAuthService_Logout(t *testing.T) {
 		t.Error("Expected error when using revoked token, got nil")
 	}
 }
+
+// Test 8: Login with non-existent user
+func TestAuthService_Login_UserNotFound(t *testing.T) {
+	userRepo := newMockUserRepository()
+	tokenRepo := newMockRefreshTokenRepository()
+	tokenService := NewTokenService("test-secret-key-for-jwt-signing")
+
+	authService := NewAuthService(
+		userRepo,
+		tokenRepo,
+		tokenService,
+		30*time.Minute,
+		7*24*time.Hour,
+		24*time.Hour,
+		30*24*time.Hour,
+	)
+
+	// Try to login with non-existent user
+	user, accessToken, refreshToken, err := authService.Login("nonexistent@example.com", "password", false)
+
+	if err == nil {
+		t.Fatal("Expected error for non-existent user, got nil")
+	}
+
+	if user != nil {
+		t.Error("Expected no user to be returned")
+	}
+
+	if accessToken != "" {
+		t.Error("Expected no access token")
+	}
+
+	if refreshToken != "" {
+		t.Error("Expected no refresh token")
+	}
+}
+
+// Test 9: Login with remember me flag
+func TestAuthService_Login_RememberMe(t *testing.T) {
+	userRepo := newMockUserRepository()
+	tokenRepo := newMockRefreshTokenRepository()
+	tokenService := NewTokenService("test-secret-key-for-jwt-signing")
+
+	authService := NewAuthService(
+		userRepo,
+		tokenRepo,
+		tokenService,
+		30*time.Minute,
+		7*24*time.Hour,
+		24*time.Hour,
+		30*24*time.Hour,
+	)
+
+	email := "test@example.com"
+	password := "SecurePass123"
+
+	// Register user
+	_, _, _, err := authService.Register(email, password)
+	if err != nil {
+		t.Fatalf("Failed to register user: %v", err)
+	}
+
+	// Login with remember me
+	user, accessToken, refreshToken, err := authService.Login(email, password, true)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if user == nil {
+		t.Fatal("Expected user to be returned")
+	}
+
+	if accessToken == "" {
+		t.Error("Expected access token")
+	}
+
+	if refreshToken == "" {
+		t.Error("Expected refresh token")
+	}
+}
+
+// Test 10: RefreshAccessToken with invalid token
+func TestAuthService_RefreshAccessToken_InvalidToken(t *testing.T) {
+	userRepo := newMockUserRepository()
+	tokenRepo := newMockRefreshTokenRepository()
+	tokenService := NewTokenService("test-secret-key-for-jwt-signing")
+
+	authService := NewAuthService(
+		userRepo,
+		tokenRepo,
+		tokenService,
+		30*time.Minute,
+		7*24*time.Hour,
+		24*time.Hour,
+		30*24*time.Hour,
+	)
+
+	// Try to refresh with invalid token
+	_, err := authService.RefreshAccessToken("invalid_token")
+
+	if err == nil {
+		t.Fatal("Expected error for invalid token, got nil")
+	}
+}
+
+// Test 11: Register validates password
+func TestAuthService_Register_WeakPassword(t *testing.T) {
+	userRepo := newMockUserRepository()
+	tokenRepo := newMockRefreshTokenRepository()
+	tokenService := NewTokenService("test-secret-key-for-jwt-signing")
+
+	authService := NewAuthService(
+		userRepo,
+		tokenRepo,
+		tokenService,
+		30*time.Minute,
+		7*24*time.Hour,
+		24*time.Hour,
+		30*24*time.Hour,
+	)
+
+	// Try to register with weak password
+	user, accessToken, refreshToken, err := authService.Register("test@example.com", "weak")
+
+	if err == nil {
+		t.Fatal("Expected error for weak password, got nil")
+	}
+
+	if user != nil {
+		t.Error("Expected no user for weak password")
+	}
+
+	if accessToken != "" {
+		t.Error("Expected no access token for weak password")
+	}
+
+	if refreshToken != "" {
+		t.Error("Expected no refresh token for weak password")
+	}
+}
+
+// Test 12: Logout with invalid token
+func TestAuthService_Logout_InvalidToken(t *testing.T) {
+	userRepo := newMockUserRepository()
+	tokenRepo := newMockRefreshTokenRepository()
+	tokenService := NewTokenService("test-secret-key-for-jwt-signing")
+
+	authService := NewAuthService(
+		userRepo,
+		tokenRepo,
+		tokenService,
+		30*time.Minute,
+		7*24*time.Hour,
+		24*time.Hour,
+		30*24*time.Hour,
+	)
+
+	// Try to logout with invalid token - should error
+	err := authService.Logout("invalid_token")
+
+	// Logout fails on invalid tokens
+	if err == nil {
+		t.Fatal("Expected error on logout with invalid token, got nil")
+	}
+}

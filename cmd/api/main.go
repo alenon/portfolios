@@ -13,6 +13,7 @@ import (
 	"github.com/lenon/portfolios/internal/config"
 	"github.com/lenon/portfolios/internal/database"
 	"github.com/lenon/portfolios/internal/handlers"
+	"github.com/lenon/portfolios/internal/jobs"
 	"github.com/lenon/portfolios/internal/middleware"
 	"github.com/lenon/portfolios/internal/repository"
 	"github.com/lenon/portfolios/internal/services"
@@ -38,6 +39,9 @@ func main() {
 	portfolioRepo := repository.NewPortfolioRepository(db)
 	transactionRepo := repository.NewTransactionRepository(db)
 	holdingRepo := repository.NewHoldingRepository(db)
+	taxLotRepo := repository.NewTaxLotRepository(db)
+	corporateActionRepo := repository.NewCorporateActionRepository(db)
+	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 
 	// Initialize services
 	tokenService := services.NewTokenService(cfg.JWT.Secret)
@@ -65,6 +69,29 @@ func main() {
 	)
 	portfolioService := services.NewPortfolioService(portfolioRepo, userRepo)
 	transactionService := services.NewTransactionService(transactionRepo, portfolioRepo, holdingRepo)
+	taxLotService := services.NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+
+	// Initialize corporate action services (for future use when implementing apply actions)
+	_ = services.NewCorporateActionService(
+		corporateActionRepo,
+		portfolioRepo,
+		transactionRepo,
+		holdingRepo,
+		taxLotRepo,
+	)
+
+	// Initialize corporate action monitor
+	corporateActionMonitor := services.NewCorporateActionMonitor(
+		corporateActionRepo,
+		portfolioRepo,
+		holdingRepo,
+		portfolioActionRepo,
+	)
+
+	// Initialize background job scheduler
+	scheduler := jobs.NewScheduler()
+	corporateActionJob := jobs.NewCorporateActionDetectionJob(corporateActionMonitor)
+	scheduler.AddJob(corporateActionJob)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(
@@ -75,6 +102,8 @@ func main() {
 	)
 	portfolioHandler := handlers.NewPortfolioHandler(portfolioService)
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
+	taxLotHandler := handlers.NewTaxLotHandler(taxLotService)
+	portfolioActionHandler := handlers.NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
 
 	// Set up Gin router
 	router := gin.Default()
@@ -133,8 +162,31 @@ func main() {
 				transactions.PUT("/:id", transactionHandler.Update)
 				transactions.DELETE("/:id", transactionHandler.Delete)
 			}
+
+			// Tax lot routes
+			taxLots := v1.Group("/tax-lots")
+			{
+				taxLots.GET("/:id", taxLotHandler.GetByID)
+			}
+
+			// Portfolio-specific tax lot routes
+			v1.GET("/portfolios/:portfolio_id/tax-lots", taxLotHandler.GetAll)
+			v1.POST("/portfolios/:portfolio_id/tax-lots/allocate", taxLotHandler.AllocateSale)
+			v1.GET("/portfolios/:portfolio_id/tax-lots/harvest", taxLotHandler.IdentifyTaxLossOpportunities)
+			v1.POST("/portfolios/:portfolio_id/tax-lots/report", taxLotHandler.GenerateTaxReport)
+
+			// Portfolio action routes (pending corporate actions)
+			v1.GET("/portfolios/:portfolio_id/actions", portfolioActionHandler.GetAllActions)
+			v1.GET("/portfolios/:portfolio_id/actions/pending", portfolioActionHandler.GetPendingActions)
+			v1.GET("/portfolios/:portfolio_id/actions/:action_id", portfolioActionHandler.GetActionByID)
+			v1.POST("/portfolios/:portfolio_id/actions/:action_id/approve", portfolioActionHandler.ApproveAction)
+			v1.POST("/portfolios/:portfolio_id/actions/:action_id/reject", portfolioActionHandler.RejectAction)
 		}
 	}
+
+	// Start background job scheduler
+	log.Println("Starting background job scheduler...")
+	scheduler.Start()
 
 	// Create HTTP server with timeouts to prevent slowloris attacks
 	srv := &http.Server{
@@ -159,6 +211,10 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	log.Println("Shutting down server...")
+
+	// Stop background job scheduler
+	log.Println("Stopping background job scheduler...")
+	scheduler.Stop()
 
 	// Graceful shutdown with 5 second timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

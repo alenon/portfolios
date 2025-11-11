@@ -15,6 +15,7 @@ type HoldingRepository interface {
 	FindByID(id string) (*models.Holding, error)
 	FindByPortfolioID(portfolioID string) ([]*models.Holding, error)
 	FindByPortfolioIDAndSymbol(portfolioID, symbol string) (*models.Holding, error)
+	FindBySymbol(symbol string) ([]*models.Holding, error)
 	Update(holding *models.Holding) error
 	Upsert(holding *models.Holding) error
 	Delete(id string) error
@@ -116,6 +117,22 @@ func (r *holdingRepository) FindByPortfolioIDAndSymbol(portfolioID, symbol strin
 	}
 
 	return &holding, nil
+}
+
+// FindBySymbol finds all holdings for a given symbol across all portfolios
+func (r *holdingRepository) FindBySymbol(symbol string) ([]*models.Holding, error) {
+	if symbol == "" {
+		return nil, fmt.Errorf("symbol cannot be empty")
+	}
+
+	var holdings []*models.Holding
+	if err := r.db.Preload("Portfolio").
+		Where("symbol = ?", symbol).
+		Find(&holdings).Error; err != nil {
+		return nil, fmt.Errorf("failed to find holdings: %w", err)
+	}
+
+	return holdings, nil
 }
 
 // Update updates an existing holding

@@ -498,3 +498,276 @@ func TestForgotPasswordAlwaysReturnsSuccess(t *testing.T) {
 		t.Errorf("Expected message '%s', got '%s'", expectedMsg, response.Message)
 	}
 }
+
+// Test 9: Get current user success
+func TestGetCurrentUserSuccess(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	userID := uuid.New().String()
+	now := time.Now().UTC()
+
+	mockAuth := &mockAuthService{}
+	mockPasswordReset := &mockPasswordResetService{}
+	mockUserRepo := &mockUserRepository{
+		findByIDFunc: func(id string) (*models.User, error) {
+			if id == userID {
+				return &models.User{
+					ID:        uuid.MustParse(userID),
+					Email:     "user@example.com",
+					CreatedAt: now,
+					UpdatedAt: now,
+				}, nil
+			}
+			return nil, errors.New("user not found")
+		},
+	}
+
+	handler := NewAuthHandler(mockAuth, mockPasswordReset, mockUserRepo, 3600)
+
+	// Create test request
+	req, _ := http.NewRequest("GET", "/api/auth/me", nil)
+
+	// Record response
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+	// Simulate middleware setting user ID
+	c.Set("user_id", userID)
+
+	// Execute handler
+	handler.GetCurrentUser(c)
+
+	// Assert response
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+
+	var response dto.UserResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to parse response: %v", err)
+	}
+
+	if response.Email != "user@example.com" {
+		t.Errorf("Expected email 'user@example.com', got '%s'", response.Email)
+	}
+}
+
+// Test 10: Get current user unauthorized
+func TestGetCurrentUserUnauthorized(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockAuth := &mockAuthService{}
+	mockPasswordReset := &mockPasswordResetService{}
+	mockUserRepo := &mockUserRepository{}
+
+	handler := NewAuthHandler(mockAuth, mockPasswordReset, mockUserRepo, 3600)
+
+	// Create test request
+	req, _ := http.NewRequest("GET", "/api/auth/me", nil)
+
+	// Record response
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+	// Don't set user ID to simulate missing auth
+
+	// Execute handler
+	handler.GetCurrentUser(c)
+
+	// Assert response
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("Expected status 401, got %d", w.Code)
+	}
+
+	var response dto.ErrorResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to parse response: %v", err)
+	}
+
+	if response.Code != "NOT_AUTHENTICATED" {
+		t.Errorf("Expected error code 'NOT_AUTHENTICATED', got '%s'", response.Code)
+	}
+}
+
+// Test 11: Get current user not found
+func TestGetCurrentUserNotFound(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockAuth := &mockAuthService{}
+	mockPasswordReset := &mockPasswordResetService{}
+	mockUserRepo := &mockUserRepository{
+		findByIDFunc: func(id string) (*models.User, error) {
+			return nil, errors.New("user not found")
+		},
+	}
+
+	handler := NewAuthHandler(mockAuth, mockPasswordReset, mockUserRepo, 3600)
+
+	// Create test request
+	req, _ := http.NewRequest("GET", "/api/auth/me", nil)
+
+	// Record response
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+	c.Set("user_id", uuid.New().String())
+
+	// Execute handler
+	handler.GetCurrentUser(c)
+
+	// Assert response
+	if w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 404, got %d", w.Code)
+	}
+
+	var response dto.ErrorResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to parse response: %v", err)
+	}
+
+	if response.Code != "USER_NOT_FOUND" {
+		t.Errorf("Expected error code 'USER_NOT_FOUND', got '%s'", response.Code)
+	}
+}
+
+// Test 12: Reset password success
+func TestResetPasswordSuccess(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockAuth := &mockAuthService{}
+	mockPasswordReset := &mockPasswordResetService{
+		resetPasswordFunc: func(token, newPassword string) error {
+			if token == "valid_token" {
+				return nil
+			}
+			return errors.New("invalid token")
+		},
+	}
+	mockUserRepo := &mockUserRepository{}
+
+	handler := NewAuthHandler(mockAuth, mockPasswordReset, mockUserRepo, 3600)
+
+	// Create test request
+	reqBody := dto.ResetPasswordRequest{
+		Token:       "valid_token",
+		NewPassword: "NewSecurePass123",
+	}
+	body, _ := json.Marshal(reqBody)
+	req, _ := http.NewRequest("POST", "/api/auth/reset-password", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Record response
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+
+	// Execute handler
+	handler.ResetPassword(c)
+
+	// Assert response
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+
+	var response dto.MessageResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to parse response: %v", err)
+	}
+
+	if response.Message != "Password reset successfully" {
+		t.Errorf("Expected success message, got '%s'", response.Message)
+	}
+}
+
+// Test 13: Reset password with invalid token
+func TestResetPasswordInvalidToken(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockAuth := &mockAuthService{}
+	mockPasswordReset := &mockPasswordResetService{
+		resetPasswordFunc: func(token, newPassword string) error {
+			return errors.New("token not found")
+		},
+	}
+	mockUserRepo := &mockUserRepository{}
+
+	handler := NewAuthHandler(mockAuth, mockPasswordReset, mockUserRepo, 3600)
+
+	// Create test request
+	reqBody := dto.ResetPasswordRequest{
+		Token:       "invalid_token",
+		NewPassword: "NewSecurePass123",
+	}
+	body, _ := json.Marshal(reqBody)
+	req, _ := http.NewRequest("POST", "/api/auth/reset-password", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Record response
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+
+	// Execute handler
+	handler.ResetPassword(c)
+
+	// Assert response
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+
+	var response dto.ErrorResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to parse response: %v", err)
+	}
+
+	if response.Code != "INVALID_RESET_TOKEN" {
+		t.Errorf("Expected error code 'INVALID_RESET_TOKEN', got '%s'", response.Code)
+	}
+}
+
+// Test 14: Reset password with invalid password
+func TestResetPasswordInvalidPassword(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockAuth := &mockAuthService{}
+	mockPasswordReset := &mockPasswordResetService{
+		resetPasswordFunc: func(token, newPassword string) error {
+			// Service returns error with "invalid password" in message
+			return errors.New("invalid password: must contain uppercase and numbers")
+		},
+	}
+	mockUserRepo := &mockUserRepository{}
+
+	handler := NewAuthHandler(mockAuth, mockPasswordReset, mockUserRepo, 3600)
+
+	// Create test request - password passes gin validation (>=8 chars) but fails service validation
+	reqBody := dto.ResetPasswordRequest{
+		Token:       "valid_token",
+		NewPassword: "weakpassword", // Passes gin min=8 but would fail service validation
+	}
+	body, _ := json.Marshal(reqBody)
+	req, _ := http.NewRequest("POST", "/api/auth/reset-password", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Record response
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+
+	// Execute handler
+	handler.ResetPassword(c)
+
+	// Assert response
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+
+	var response dto.ErrorResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to parse response: %v", err)
+	}
+
+	if response.Code != "INVALID_PASSWORD" {
+		t.Errorf("Expected error code 'INVALID_PASSWORD', got '%s'", response.Code)
+	}
+}
