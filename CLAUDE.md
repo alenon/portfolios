@@ -54,6 +54,33 @@ go mod download
 go mod tidy
 ```
 
+## Dependency Management
+
+**CRITICAL: Always use the most up-to-date versions of third-party dependencies.**
+
+When adding or updating dependencies:
+1. **Search for the latest version**: Before using any third-party package, search the internet (pkg.go.dev, GitHub releases) to find the latest stable version
+2. **Prefer stable releases**: Use the latest stable version, not pre-release versions (e.g., prefer v1.5.1 over v1.6.0-pre.2)
+3. **Check regularly**: When working on existing code, verify that dependencies are current and update them if newer versions are available
+4. **Update cautiously**: Review changelogs and breaking changes before upgrading major versions
+
+**To update dependencies:**
+```bash
+# Update a specific dependency to latest
+go get -u github.com/package/name@latest
+
+# Update all dependencies
+go get -u ./...
+
+# Clean up and verify
+go mod tidy
+go mod verify
+```
+
+**Verify latest versions at:**
+- https://pkg.go.dev/[package-path]
+- https://github.com/[org]/[repo]/releases
+
 ## Architecture Notes
 
 The project structure is not yet established. When developing:
