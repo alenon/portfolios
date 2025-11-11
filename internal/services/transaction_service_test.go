@@ -458,3 +458,253 @@ func TestTransactionService_Delete(t *testing.T) {
 		assert.Equal(t, models.ErrUnauthorizedAccess, err)
 	})
 }
+
+func TestTransactionService_Update(t *testing.T) {
+	db := setupTransactionTestDB(t)
+	transactionRepo := repository.NewTransactionRepository(db)
+	portfolioRepo := repository.NewPortfolioRepository(db)
+	holdingRepo := repository.NewHoldingRepository(db)
+	service := NewTransactionService(transactionRepo, portfolioRepo, holdingRepo)
+
+	user, portfolio := createTestUserAndPortfolio(t, db)
+
+	// Create initial transaction
+	transaction, err := service.Create(
+		portfolio.ID.String(),
+		user.ID.String(),
+		models.TransactionTypeBuy,
+		"AAPL",
+		time.Now(),
+		decimal.NewFromInt(10),
+		decimal.NewFromFloat(150.00),
+		decimal.Zero,
+		"USD",
+		"Initial purchase",
+	)
+	assert.NoError(t, err)
+
+	t.Run("successful update", func(t *testing.T) {
+		updated, err := service.Update(
+			transaction.ID.String(),
+			user.ID.String(),
+			models.TransactionTypeBuy,
+			"AAPL",
+			time.Now(),
+			decimal.NewFromInt(15), // Changed quantity
+			decimal.NewFromFloat(155.00), // Changed price
+			decimal.Zero,
+			"USD",
+			"Updated purchase",
+		)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, updated)
+		assert.Equal(t, decimal.NewFromInt(15), updated.Quantity)
+		assert.Equal(t, decimal.NewFromFloat(155.00), *updated.Price)
+		assert.Equal(t, "Updated purchase", updated.Notes)
+
+		// Verify holdings were recalculated
+		holding, err := holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "AAPL")
+		assert.NoError(t, err)
+		assert.Equal(t, decimal.NewFromInt(15), holding.Quantity)
+	})
+
+	t.Run("unauthorized update", func(t *testing.T) {
+		otherUserID := uuid.New().String()
+		_, err := service.Update(
+			transaction.ID.String(),
+			otherUserID,
+			models.TransactionTypeBuy,
+			"AAPL",
+			time.Now(),
+			decimal.NewFromInt(20),
+			decimal.NewFromFloat(160.00),
+			decimal.Zero,
+			"USD",
+			"Unauthorized update",
+		)
+
+		assert.Error(t, err)
+		assert.Equal(t, models.ErrUnauthorizedAccess, err)
+	})
+
+	t.Run("validation error", func(t *testing.T) {
+		// Try to update with zero quantity (should fail validation)
+		_, err := service.Update(
+			transaction.ID.String(),
+			user.ID.String(),
+			models.TransactionTypeBuy,
+			"AAPL",
+			time.Now(),
+			decimal.Zero, // Invalid: zero quantity
+			decimal.NewFromFloat(150.00),
+			decimal.Zero,
+			"USD",
+			"Invalid update",
+		)
+
+		assert.Error(t, err)
+	})
+}
+
+func TestTransactionService_RecalculateHoldingsForSymbol(t *testing.T) {
+	db := setupTransactionTestDB(t)
+	transactionRepo := repository.NewTransactionRepository(db)
+	portfolioRepo := repository.NewPortfolioRepository(db)
+	holdingRepo := repository.NewHoldingRepository(db)
+	service := NewTransactionService(transactionRepo, portfolioRepo, holdingRepo)
+
+	user, portfolio := createTestUserAndPortfolio(t, db)
+
+	t.Run("recalculate after multiple buys", func(t *testing.T) {
+		// Create first buy
+		_, err := service.Create(
+			portfolio.ID.String(),
+			user.ID.String(),
+			models.TransactionTypeBuy,
+			"TSLA",
+			time.Now().AddDate(0, 0, -2),
+			decimal.NewFromInt(10),
+			decimal.NewFromFloat(100.00),
+			decimal.Zero,
+			"USD",
+			"",
+		)
+		assert.NoError(t, err)
+
+		// Create second buy
+		_, err = service.Create(
+			portfolio.ID.String(),
+			user.ID.String(),
+			models.TransactionTypeBuy,
+			"TSLA",
+			time.Now().AddDate(0, 0, -1),
+			decimal.NewFromInt(5),
+			decimal.NewFromFloat(110.00),
+			decimal.Zero,
+			"USD",
+			"",
+		)
+		assert.NoError(t, err)
+
+		// Verify holdings
+		holding, err := holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "TSLA")
+		assert.NoError(t, err)
+		assert.Equal(t, decimal.NewFromInt(15), holding.Quantity)
+		// Cost basis = (10 * 100) + (5 * 110) = 1000 + 550 = 1550
+		assert.Equal(t, decimal.NewFromInt(1550), holding.CostBasis)
+	})
+
+	t.Run("recalculate after buy and sell", func(t *testing.T) {
+		// Create buy
+		_, err := service.Create(
+			portfolio.ID.String(),
+			user.ID.String(),
+			models.TransactionTypeBuy,
+			"MSFT",
+			time.Now().AddDate(0, 0, -2),
+			decimal.NewFromInt(20),
+			decimal.NewFromFloat(200.00),
+			decimal.Zero,
+			"USD",
+			"",
+		)
+		assert.NoError(t, err)
+
+		// Create sell
+		_, err = service.Create(
+			portfolio.ID.String(),
+			user.ID.String(),
+			models.TransactionTypeSell,
+			"MSFT",
+			time.Now().AddDate(0, 0, -1),
+			decimal.NewFromInt(5),
+			decimal.NewFromFloat(210.00),
+			decimal.Zero,
+			"USD",
+			"",
+		)
+		assert.NoError(t, err)
+
+		// Verify holdings
+		holding, err := holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "MSFT")
+		assert.NoError(t, err)
+		assert.Equal(t, decimal.NewFromInt(15), holding.Quantity)
+		// Cost basis = (20 * 200) - (5 * 200) = 4000 - 1000 = 3000
+		assert.Equal(t, decimal.NewFromInt(3000), holding.CostBasis)
+	})
+
+	t.Run("delete holding when quantity reaches zero", func(t *testing.T) {
+		// Create buy
+		_, err := service.Create(
+			portfolio.ID.String(),
+			user.ID.String(),
+			models.TransactionTypeBuy,
+			"GOOG",
+			time.Now().AddDate(0, 0, -2),
+			decimal.NewFromInt(10),
+			decimal.NewFromFloat(1000.00),
+			decimal.Zero,
+			"USD",
+			"",
+		)
+		assert.NoError(t, err)
+
+		// Verify holding exists
+		holding, err := holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "GOOG")
+		assert.NoError(t, err)
+		assert.NotNil(t, holding)
+
+		// Sell all shares
+		_, err = service.Create(
+			portfolio.ID.String(),
+			user.ID.String(),
+			models.TransactionTypeSell,
+			"GOOG",
+			time.Now().AddDate(0, 0, -1),
+			decimal.NewFromInt(10),
+			decimal.NewFromFloat(1100.00),
+			decimal.Zero,
+			"USD",
+			"",
+		)
+		assert.NoError(t, err)
+
+		// Verify holding is deleted
+		_, err = holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "GOOG")
+		assert.Error(t, err)
+		assert.Equal(t, models.ErrHoldingNotFound, err)
+	})
+
+	t.Run("create holding if not exists", func(t *testing.T) {
+		// Manually delete a holding to test recreation
+		holding, err := holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "TSLA")
+		assert.NoError(t, err)
+		err = holdingRepo.Delete(holding.ID.String())
+		assert.NoError(t, err)
+
+		// Trigger recalculation via service (accessing private method through Update)
+		// Create a transaction to trigger recalculation
+		tx, err := service.Create(
+			portfolio.ID.String(),
+			user.ID.String(),
+			models.TransactionTypeBuy,
+			"TSLA",
+			time.Now(),
+			decimal.NewFromInt(1),
+			decimal.NewFromFloat(120.00),
+			decimal.Zero,
+			"USD",
+			"",
+		)
+		assert.NoError(t, err)
+
+		// Holding should be recreated through recalculation
+		recreatedHolding, err := holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "TSLA")
+		assert.NoError(t, err)
+		assert.NotNil(t, recreatedHolding)
+
+		// Clean up the test transaction
+		_ = tx
+	})
+}
