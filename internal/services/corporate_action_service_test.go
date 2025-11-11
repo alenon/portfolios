@@ -681,13 +681,13 @@ func TestCorporateActionService_ApplySpinoff_Success(t *testing.T) {
 	// Verify parent holding was updated (cost basis reduced by 10%)
 	parentUpdated, err := holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "AAPL")
 	assert.NoError(t, err)
-	assert.True(t, parentUpdated.Quantity.Equal(decimal.NewFromInt(100))) // Quantity unchanged
+	assert.True(t, parentUpdated.Quantity.Equal(decimal.NewFromInt(100)))   // Quantity unchanged
 	assert.True(t, parentUpdated.CostBasis.Equal(decimal.NewFromInt(9000))) // 90% of original
 
 	// Verify spinoff holding was created
 	spinoffHolding, err := holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "SPIN")
 	assert.NoError(t, err)
-	assert.True(t, spinoffHolding.Quantity.Equal(decimal.NewFromInt(50))) // 100 * 0.5
+	assert.True(t, spinoffHolding.Quantity.Equal(decimal.NewFromInt(50)))    // 100 * 0.5
 	assert.True(t, spinoffHolding.CostBasis.Equal(decimal.NewFromInt(1000))) // 10% of original
 
 	// Verify spinoff tax lot was created
@@ -915,8 +915,8 @@ func TestCorporateActionService_ApplyTickerChange_Success(t *testing.T) {
 	// Verify new holding was created with same values
 	newHolding, err := holdingRepo.FindByPortfolioIDAndSymbol(portfolio.ID.String(), "META")
 	assert.NoError(t, err)
-	assert.True(t, newHolding.Quantity.Equal(decimal.NewFromInt(100))) // Same quantity
-	assert.True(t, newHolding.CostBasis.Equal(decimal.NewFromInt(20000))) // Same cost basis
+	assert.True(t, newHolding.Quantity.Equal(decimal.NewFromInt(100)))     // Same quantity
+	assert.True(t, newHolding.CostBasis.Equal(decimal.NewFromInt(20000)))  // Same cost basis
 	assert.True(t, newHolding.AvgCostPrice.Equal(decimal.NewFromInt(200))) // Same avg price
 
 	// Verify tax lot was created with new symbol

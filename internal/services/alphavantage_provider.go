@@ -42,7 +42,7 @@ func (p *AlphaVantageProvider) IsAvailable() bool {
 // GetQuote retrieves a real-time quote from Alpha Vantage
 func (p *AlphaVantageProvider) GetQuote(ctx context.Context, symbol string) (*Quote, error) {
 	if !p.IsAvailable() {
-		return nil, fmt.Errorf("Alpha Vantage API key not configured")
+		return nil, fmt.Errorf("alpha Vantage API key not configured")
 	}
 
 	// Build request URL
@@ -64,7 +64,9 @@ func (p *AlphaVantageProvider) GetQuote(ctx context.Context, symbol string) (*Qu
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch quote: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("API returned status %d", resp.StatusCode)
@@ -112,8 +114,8 @@ func (p *AlphaVantageProvider) GetQuote(ctx context.Context, symbol string) (*Qu
 
 	// Parse quote data
 	quote := &Quote{
-		Symbol:        result.GlobalQuote.Symbol,
-		LastUpdated:   time.Now(),
+		Symbol:      result.GlobalQuote.Symbol,
+		LastUpdated: time.Now(),
 	}
 
 	if price, err := decimal.NewFromString(result.GlobalQuote.Price); err == nil {
@@ -176,7 +178,7 @@ func (p *AlphaVantageProvider) GetQuotes(ctx context.Context, symbols []string) 
 // GetHistoricalPrices retrieves historical price data from Alpha Vantage
 func (p *AlphaVantageProvider) GetHistoricalPrices(ctx context.Context, symbol string, startDate, endDate time.Time) ([]*HistoricalPrice, error) {
 	if !p.IsAvailable() {
-		return nil, fmt.Errorf("Alpha Vantage API key not configured")
+		return nil, fmt.Errorf("alpha Vantage API key not configured")
 	}
 
 	// Build request URL for daily time series
@@ -199,7 +201,9 @@ func (p *AlphaVantageProvider) GetHistoricalPrices(ctx context.Context, symbol s
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch historical data: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("API returned status %d", resp.StatusCode)
@@ -213,12 +217,12 @@ func (p *AlphaVantageProvider) GetHistoricalPrices(ctx context.Context, symbol s
 
 	var result struct {
 		TimeSeriesDaily map[string]struct {
-			Open             string `json:"1. open"`
-			High             string `json:"2. high"`
-			Low              string `json:"3. low"`
-			Close            string `json:"4. close"`
-			AdjustedClose    string `json:"5. adjusted close"`
-			Volume           string `json:"6. volume"`
+			Open          string `json:"1. open"`
+			High          string `json:"2. high"`
+			Low           string `json:"3. low"`
+			Close         string `json:"4. close"`
+			AdjustedClose string `json:"5. adjusted close"`
+			Volume        string `json:"6. volume"`
 		} `json:"Time Series (Daily)"`
 		ErrorMessage string `json:"Error Message"`
 		Note         string `json:"Note"`
@@ -281,7 +285,7 @@ func (p *AlphaVantageProvider) GetHistoricalPrices(ctx context.Context, symbol s
 // GetExchangeRate retrieves the exchange rate between two currencies
 func (p *AlphaVantageProvider) GetExchangeRate(ctx context.Context, fromCurrency, toCurrency string) (decimal.Decimal, error) {
 	if !p.IsAvailable() {
-		return decimal.Zero, fmt.Errorf("Alpha Vantage API key not configured")
+		return decimal.Zero, fmt.Errorf("alpha Vantage API key not configured")
 	}
 
 	if fromCurrency == toCurrency {
@@ -308,7 +312,9 @@ func (p *AlphaVantageProvider) GetExchangeRate(ctx context.Context, fromCurrency
 	if err != nil {
 		return decimal.Zero, fmt.Errorf("failed to fetch exchange rate: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return decimal.Zero, fmt.Errorf("API returned status %d", resp.StatusCode)

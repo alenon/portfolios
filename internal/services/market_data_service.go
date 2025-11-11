@@ -10,21 +10,21 @@ import (
 
 // Quote represents a stock quote with price and metadata
 type Quote struct {
-	Symbol           string
-	Price            decimal.Decimal
-	Open             decimal.Decimal
-	High             decimal.Decimal
-	Low              decimal.Decimal
-	Volume           int64
-	PreviousClose    decimal.Decimal
-	Change           decimal.Decimal
-	ChangePercent    decimal.Decimal
-	LastUpdated      time.Time
-	MarketCap        *decimal.Decimal
-	PE               *decimal.Decimal
-	Week52High       *decimal.Decimal
-	Week52Low        *decimal.Decimal
-	AverageDailyVol  *int64
+	Symbol          string
+	Price           decimal.Decimal
+	Open            decimal.Decimal
+	High            decimal.Decimal
+	Low             decimal.Decimal
+	Volume          int64
+	PreviousClose   decimal.Decimal
+	Change          decimal.Decimal
+	ChangePercent   decimal.Decimal
+	LastUpdated     time.Time
+	MarketCap       *decimal.Decimal
+	PE              *decimal.Decimal
+	Week52High      *decimal.Decimal
+	Week52Low       *decimal.Decimal
+	AverageDailyVol *int64
 }
 
 // HistoricalPrice represents a historical price point
@@ -76,16 +76,16 @@ type MarketDataService interface {
 
 // marketDataService implements MarketDataService with caching
 type marketDataService struct {
-	provider    MarketDataProvider
-	cache       map[string]*cachedQuote
-	cacheTTL    time.Duration
-	defaultCtx  context.Context
+	provider   MarketDataProvider
+	cache      map[string]*cachedQuote
+	cacheTTL   time.Duration
+	defaultCtx context.Context
 }
 
 // cachedQuote represents a cached quote with expiration
 type cachedQuote struct {
-	quote      *Quote
-	fetchedAt  time.Time
+	quote     *Quote
+	fetchedAt time.Time
 }
 
 // NewMarketDataService creates a new MarketDataService with the specified provider

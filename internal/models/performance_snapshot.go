@@ -10,17 +10,17 @@ import (
 
 // PerformanceSnapshot represents a point-in-time snapshot of portfolio performance
 type PerformanceSnapshot struct {
-	ID             uuid.UUID       `gorm:"type:uuid;primaryKey" json:"id"`
-	PortfolioID    uuid.UUID       `gorm:"type:uuid;not null;index" json:"portfolio_id" validate:"required"`
-	Date           time.Time       `gorm:"not null;index:idx_performance_snapshots_date" json:"date" validate:"required"`
-	TotalValue     decimal.Decimal `gorm:"type:numeric(20,8);not null" json:"total_value" validate:"required"`
-	TotalCostBasis decimal.Decimal `gorm:"type:numeric(20,8);not null" json:"total_cost_basis" validate:"required"`
-	TotalReturn    decimal.Decimal `gorm:"type:numeric(20,8);not null" json:"total_return" validate:"required"`
-	TotalReturnPct decimal.Decimal `gorm:"type:numeric(10,4);not null" json:"total_return_pct" validate:"required"`
+	ID             uuid.UUID        `gorm:"type:uuid;primaryKey" json:"id"`
+	PortfolioID    uuid.UUID        `gorm:"type:uuid;not null;index" json:"portfolio_id" validate:"required"`
+	Date           time.Time        `gorm:"not null;index:idx_performance_snapshots_date" json:"date" validate:"required"`
+	TotalValue     decimal.Decimal  `gorm:"type:numeric(20,8);not null" json:"total_value" validate:"required"`
+	TotalCostBasis decimal.Decimal  `gorm:"type:numeric(20,8);not null" json:"total_cost_basis" validate:"required"`
+	TotalReturn    decimal.Decimal  `gorm:"type:numeric(20,8);not null" json:"total_return" validate:"required"`
+	TotalReturnPct decimal.Decimal  `gorm:"type:numeric(10,4);not null" json:"total_return_pct" validate:"required"`
 	DayChange      *decimal.Decimal `gorm:"type:numeric(20,8)" json:"day_change,omitempty"`
 	DayChangePct   *decimal.Decimal `gorm:"type:numeric(10,4)" json:"day_change_pct,omitempty"`
-	CreatedAt      time.Time       `json:"created_at"`
-	Portfolio      *Portfolio      `gorm:"foreignKey:PortfolioID" json:"portfolio,omitempty"`
+	CreatedAt      time.Time        `json:"created_at"`
+	Portfolio      *Portfolio       `gorm:"foreignKey:PortfolioID" json:"portfolio,omitempty"`
 }
 
 // TableName specifies the table name for the PerformanceSnapshot model

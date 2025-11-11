@@ -52,20 +52,12 @@ func TestAlphaVantageProvider_GetQuote(t *testing.T) {
 				}
 			}`
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(response))
+			_, _ = w.Write([]byte(response))
 		}))
 		defer server.Close()
 
-		provider := &AlphaVantageProvider{
-			apiKey:     "test-api-key",
-			httpClient: server.Client(),
-		}
-		// Override base URL by creating request manually
-		originalURL := alphaVantageBaseURL
-		defer func() { _ = originalURL }()
-
 		// Use a custom provider that points to our test server
-		provider = &AlphaVantageProvider{
+		provider := &AlphaVantageProvider{
 			apiKey: "test-api-key",
 			httpClient: &http.Client{
 				Transport: &mockTransport{server: server},
@@ -107,7 +99,7 @@ func TestAlphaVantageProvider_GetQuote(t *testing.T) {
 				"Error Message": "Invalid API call"
 			}`
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(response))
+			_, _ = w.Write([]byte(response))
 		}))
 		defer server.Close()
 
@@ -131,7 +123,7 @@ func TestAlphaVantageProvider_GetQuote(t *testing.T) {
 				"Note": "Thank you for using Alpha Vantage! Our standard API call frequency is 5 calls per minute and 500 calls per day."
 			}`
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(response))
+			_, _ = w.Write([]byte(response))
 		}))
 		defer server.Close()
 
@@ -155,7 +147,7 @@ func TestAlphaVantageProvider_GetQuote(t *testing.T) {
 				"Global Quote": {}
 			}`
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(response))
+			_, _ = w.Write([]byte(response))
 		}))
 		defer server.Close()
 
@@ -196,7 +188,7 @@ func TestAlphaVantageProvider_GetQuote(t *testing.T) {
 	t.Run("invalid JSON response", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("invalid json"))
+			_, _ = w.Write([]byte("invalid json"))
 		}))
 		defer server.Close()
 
@@ -229,7 +221,7 @@ func TestAlphaVantageProvider_GetQuotes(t *testing.T) {
 				}
 			}`, symbol)
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(response))
+			_, _ = w.Write([]byte(response))
 		}))
 		defer server.Close()
 
@@ -265,7 +257,7 @@ func TestAlphaVantageProvider_GetQuotes(t *testing.T) {
 				}
 			}`
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(response))
+			_, _ = w.Write([]byte(response))
 		}))
 		defer server.Close()
 
@@ -293,7 +285,7 @@ func TestAlphaVantageProvider_GetQuotes(t *testing.T) {
 			if symbol == "INVALID" {
 				response := `{"Error Message": "Invalid symbol"}`
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(response))
+				_, _ = w.Write([]byte(response))
 				return
 			}
 
@@ -304,7 +296,7 @@ func TestAlphaVantageProvider_GetQuotes(t *testing.T) {
 				}
 			}`, symbol)
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(response))
+			_, _ = w.Write([]byte(response))
 		}))
 		defer server.Close()
 
@@ -351,7 +343,7 @@ func TestAlphaVantageProvider_GetHistoricalPrices(t *testing.T) {
 				}
 			}`
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(response))
+			_, _ = w.Write([]byte(response))
 		}))
 		defer server.Close()
 
@@ -394,7 +386,7 @@ func TestAlphaVantageProvider_GetHistoricalPrices(t *testing.T) {
 				"Error Message": "Invalid API call"
 			}`
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(response))
+			_, _ = w.Write([]byte(response))
 		}))
 		defer server.Close()
 
@@ -437,7 +429,7 @@ func TestAlphaVantageProvider_GetHistoricalPrices(t *testing.T) {
 				}
 			}`
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(response))
+			_, _ = w.Write([]byte(response))
 		}))
 		defer server.Close()
 
@@ -497,7 +489,7 @@ func TestAlphaVantageProvider_GetExchangeRate(t *testing.T) {
 				}
 			}`
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(response))
+			_, _ = w.Write([]byte(response))
 		}))
 		defer server.Close()
 
@@ -547,7 +539,7 @@ func TestAlphaVantageProvider_GetExchangeRate(t *testing.T) {
 				"Error Message": "Invalid currency"
 			}`
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(response))
+			_, _ = w.Write([]byte(response))
 		}))
 		defer server.Close()
 
@@ -573,7 +565,7 @@ func TestAlphaVantageProvider_GetExchangeRate(t *testing.T) {
 				}
 			}`
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(response))
+			_, _ = w.Write([]byte(response))
 		}))
 		defer server.Close()
 
