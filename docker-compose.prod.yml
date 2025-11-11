@@ -49,9 +49,13 @@ services:
 
   # Backend API
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # Use pre-built image from GitHub Container Registry
+    # Replace <owner> with your GitHub username or organization name
+    image: ghcr.io/<owner>/portfolios-backend:latest
+    # Uncomment below to build locally instead of pulling from registry:
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     container_name: portfolios-backend-prod
     env_file:
       # Load environment variables from production env file
@@ -141,27 +145,32 @@ volumes:
 #    - Set strong POSTGRES_PASSWORD
 #    - Configure SMTP with production email service
 #    - Set CORS_ALLOWED_ORIGINS to production domains only
+#    - Update the image name in backend service (replace <owner> with your GitHub username)
 #
-# 2. Deploy:
-#    docker-compose -f docker-compose.prod.yml up -d --build
+# 2. Login to GitHub Container Registry (if using private images):
+#    echo "<GITHUB_TOKEN>" | docker login ghcr.io -u <GITHUB_USERNAME> --password-stdin
 #
-# 3. Run migrations:
+# 3. Deploy:
+#    docker-compose -f docker-compose.prod.yml pull  # Pull latest images
+#    docker-compose -f docker-compose.prod.yml up -d
+#
+# 4. Run migrations:
 #    docker-compose -f docker-compose.prod.yml exec backend sh
 #    migrate -path /root/migrations -database "$DATABASE_URL" up
 #
-# 4. View logs:
+# 5. View logs:
 #    docker-compose -f docker-compose.prod.yml logs -f
 #
-# 5. Stop services:
+# 6. Stop services:
 #    docker-compose -f docker-compose.prod.yml down
 #
-# 6. With nginx reverse proxy:
+# 7. With nginx reverse proxy:
 #    docker-compose -f docker-compose.prod.yml --profile with-nginx-proxy up -d
 #
-# 7. Backup database:
+# 8. Backup database:
 #    docker-compose -f docker-compose.prod.yml exec postgres pg_dump -U portfolios_user portfolios > backup.sql
 #
-# 8. Restore database:
+# 9. Restore database:
 #    docker-compose -f docker-compose.prod.yml exec -T postgres psql -U portfolios_user portfolios < backup.sql
 #
 # Security considerations:

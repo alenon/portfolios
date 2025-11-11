@@ -193,30 +193,26 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-        # Or use GitHub Container Registry:
-        # with:
-        #   registry: ghcr.io
-        #   username: ${{ github.actor }}
-        #   password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ secrets.DOCKER_USERNAME }}/portfolios-backend
-            # Or for GHCR: ghcr.io/${{ github.repository }}/backend
+            ghcr.io/${{ github.repository_owner }}/portfolios-backend
           tags: |
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -226,8 +222,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/portfolios-backend:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/portfolios-backend:buildcache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/portfolios-backend:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/portfolios-backend:buildcache,mode=max
           platforms: linux/amd64,linux/arm64
 
   # Deploy to staging (optional)
@@ -254,7 +250,8 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           script: |
             cd /opt/portfolios-staging
-            docker-compose pull backend
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker pull ghcr.io/${{ github.repository_owner }}/portfolios-backend:develop
             docker-compose up -d backend
             docker-compose exec -T backend migrate -path /root/migrations -database "$DATABASE_URL" up
             echo "Deployment to staging completed"
@@ -288,7 +285,8 @@ jobs:
           key: ${{ secrets.PRODUCTION_SSH_KEY }}
           script: |
             cd /opt/portfolios
-            docker-compose -f docker-compose.prod.yml pull backend
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker pull ghcr.io/${{ github.repository_owner }}/portfolios-backend:latest
             docker-compose -f docker-compose.prod.yml up -d backend
             docker-compose -f docker-compose.prod.yml exec -T backend migrate -path /root/migrations -database "$DATABASE_URL" up
             echo "Deployment to production completed"
@@ -307,8 +305,7 @@ jobs:
           webhook_url: ${{ secrets.SLACK_WEBHOOK }}
 
 # Secrets required in GitHub repository settings:
-# - DOCKER_USERNAME: Docker Hub username
-# - DOCKER_PASSWORD: Docker Hub password or access token
+# - GITHUB_TOKEN: Automatically provided by GitHub Actions (no need to configure)
 # - STAGING_HOST: Staging server hostname
 # - STAGING_USER: Staging server SSH username
 # - STAGING_SSH_KEY: Staging server SSH private key
@@ -316,3 +313,9 @@ jobs:
 # - PRODUCTION_USER: Production server SSH username
 # - PRODUCTION_SSH_KEY: Production server SSH private key
 # - SLACK_WEBHOOK: Slack webhook URL for notifications (optional)
+#
+# Notes:
+# - Docker images are pushed to GitHub Container Registry (ghcr.io)
+# - Images are automatically published at: ghcr.io/<owner>/portfolios-backend
+# - To pull images, you need to authenticate: docker login ghcr.io -u <username>
+# - Personal Access Token with 'read:packages' scope required for pulling images
