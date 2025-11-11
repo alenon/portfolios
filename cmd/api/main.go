@@ -69,10 +69,10 @@ func main() {
 	)
 	portfolioService := services.NewPortfolioService(portfolioRepo, userRepo)
 	transactionService := services.NewTransactionService(transactionRepo, portfolioRepo, holdingRepo)
-	taxLotService := services.NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
+	taxLotService := services.NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo, transactionRepo)
 
-	// Initialize corporate action services (for future use when implementing apply actions)
-	_ = services.NewCorporateActionService(
+	// Initialize corporate action service
+	corporateActionService := services.NewCorporateActionService(
 		corporateActionRepo,
 		portfolioRepo,
 		transactionRepo,
@@ -103,7 +103,7 @@ func main() {
 	portfolioHandler := handlers.NewPortfolioHandler(portfolioService)
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
 	taxLotHandler := handlers.NewTaxLotHandler(taxLotService)
-	portfolioActionHandler := handlers.NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	portfolioActionHandler := handlers.NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, corporateActionService)
 
 	// Set up Gin router
 	router := gin.Default()

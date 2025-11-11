@@ -78,7 +78,7 @@ func TestNewPortfolioActionHandler(t *testing.T) {
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
 
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	assert.NotNil(t, handler)
 	assert.NotNil(t, handler.portfolioActionRepo)
@@ -92,7 +92,7 @@ func TestGetPendingActions_Success(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.GET("/api/v1/portfolios/:portfolio_id/actions/pending", func(c *gin.Context) {
@@ -121,7 +121,7 @@ func TestGetPendingActions_Unauthorized(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.GET("/api/v1/portfolios/:portfolio_id/actions/pending", handler.GetPendingActions)
@@ -140,7 +140,7 @@ func TestGetPendingActions_PortfolioNotFound(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.GET("/api/v1/portfolios/:portfolio_id/actions/pending", func(c *gin.Context) {
@@ -169,7 +169,7 @@ func TestGetPendingActions_Forbidden(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.GET("/api/v1/portfolios/:portfolio_id/actions/pending", func(c *gin.Context) {
@@ -191,7 +191,7 @@ func TestGetAllActions_Success(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.GET("/api/v1/portfolios/:portfolio_id/actions", func(c *gin.Context) {
@@ -218,7 +218,7 @@ func TestGetActionByID_Success(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.GET("/api/v1/portfolios/:portfolio_id/actions/:action_id", func(c *gin.Context) {
@@ -246,7 +246,7 @@ func TestGetActionByID_ActionNotFound(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.GET("/api/v1/portfolios/:portfolio_id/actions/:action_id", func(c *gin.Context) {
@@ -277,7 +277,7 @@ func TestGetActionByID_WrongPortfolio(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.GET("/api/v1/portfolios/:portfolio_id/actions/:action_id", func(c *gin.Context) {
@@ -299,7 +299,7 @@ func TestApproveAction_Success(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.POST("/api/v1/portfolios/:portfolio_id/actions/:action_id/approve", func(c *gin.Context) {
@@ -331,7 +331,7 @@ func TestApproveAction_Unauthorized(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.POST("/api/v1/portfolios/:portfolio_id/actions/:action_id/approve", handler.ApproveAction)
@@ -354,7 +354,7 @@ func TestApproveAction_NotPending(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.POST("/api/v1/portfolios/:portfolio_id/actions/:action_id/approve", func(c *gin.Context) {
@@ -376,7 +376,7 @@ func TestRejectAction_Success(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.POST("/api/v1/portfolios/:portfolio_id/actions/:action_id/reject", func(c *gin.Context) {
@@ -408,7 +408,7 @@ func TestRejectAction_InvalidRequest(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.POST("/api/v1/portfolios/:portfolio_id/actions/:action_id/reject", func(c *gin.Context) {
@@ -438,7 +438,7 @@ func TestRejectAction_NotPending(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	router := gin.New()
 	router.POST("/api/v1/portfolios/:portfolio_id/actions/:action_id/reject", func(c *gin.Context) {
@@ -462,7 +462,7 @@ func TestToPortfolioActionResponse(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	// Load the action with corporate action
 	loadedAction, err := portfolioActionRepo.FindByID(portfolioAction.ID.String())
@@ -496,7 +496,7 @@ func TestToPortfolioActionResponse_NoCorporateAction(t *testing.T) {
 
 	portfolioActionRepo := repository.NewPortfolioActionRepository(db)
 	portfolioRepo := repository.NewPortfolioRepository(db)
-	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo)
+	handler := NewPortfolioActionHandler(portfolioActionRepo, portfolioRepo, nil)
 
 	// Create but don't load relationships
 	require.NoError(t, db.Create(portfolioAction).Error)

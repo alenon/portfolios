@@ -72,9 +72,10 @@ type RealizedGain struct {
 
 // taxLotService implements TaxLotService interface
 type taxLotService struct {
-	taxLotRepo    repository.TaxLotRepository
-	portfolioRepo repository.PortfolioRepository
-	holdingRepo   repository.HoldingRepository
+	taxLotRepo      repository.TaxLotRepository
+	portfolioRepo   repository.PortfolioRepository
+	holdingRepo     repository.HoldingRepository
+	transactionRepo repository.TransactionRepository
 }
 
 // NewTaxLotService creates a new TaxLotService instance
@@ -82,11 +83,13 @@ func NewTaxLotService(
 	taxLotRepo repository.TaxLotRepository,
 	portfolioRepo repository.PortfolioRepository,
 	holdingRepo repository.HoldingRepository,
+	transactionRepo repository.TransactionRepository,
 ) TaxLotService {
 	return &taxLotService{
-		taxLotRepo:    taxLotRepo,
-		portfolioRepo: portfolioRepo,
-		holdingRepo:   holdingRepo,
+		taxLotRepo:      taxLotRepo,
+		portfolioRepo:   portfolioRepo,
+		holdingRepo:     holdingRepo,
+		transactionRepo: transactionRepo,
 	}
 }
 
@@ -295,14 +298,7 @@ func (s *taxLotService) GenerateTaxReport(portfolioID, userID string, taxYear in
 		return nil, models.ErrUnauthorizedAccess
 	}
 
-	// This is a placeholder implementation
-	// In a real implementation, we would:
-	// 1. Query all SELL transactions for the given year
-	// 2. Match them with their corresponding tax lots
-	// 3. Calculate gains/losses for each
-	// 4. Categorize as short-term or long-term
-	// 5. Sum up totals
-
+	// Initialize report
 	report := &TaxReport{
 		Year:               taxYear,
 		ShortTermGains:     make([]*RealizedGain, 0),
@@ -312,8 +308,102 @@ func (s *taxLotService) GenerateTaxReport(portfolioID, userID string, taxYear in
 		TotalGain:          decimal.Zero,
 	}
 
-	// TODO: Implement full tax report generation
-	// This would require querying transactions and matching with tax lots
+	// Get the start and end dates for the tax year
+	startDate := time.Date(taxYear, 1, 1, 0, 0, 0, 0, time.UTC)
+	endDate := time.Date(taxYear, 12, 31, 23, 59, 59, 999999999, time.UTC)
+
+	// Get all transactions for this portfolio in the tax year
+	allTransactions, err := s.transactionRepo.FindByPortfolioIDWithFilters(portfolioID, nil, &startDate, &endDate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query transactions: %w", err)
+	}
+
+	// Filter for sell transactions only
+	var sellTransactions []*models.Transaction
+	for _, tx := range allTransactions {
+		if tx.Type == models.TransactionTypeSell {
+			sellTransactions = append(sellTransactions, tx)
+		}
+	}
+
+	// For each sell transaction, allocate to tax lots and calculate gain/loss
+	for _, sellTx := range sellTransactions {
+		if sellTx.Price == nil {
+			continue // Skip sells without a price
+		}
+
+		salePrice := *sellTx.Price
+
+		// Get tax lots at the time of the sale to allocate
+		taxLots, err := s.taxLotRepo.FindByPortfolioIDAndSymbol(portfolioID, sellTx.Symbol)
+		if err != nil {
+			continue // Skip if we can't find tax lots
+		}
+
+		// Sort lots by purchase date (FIFO)
+		sortTaxLots(taxLots, portfolio.CostBasisMethod)
+
+		// Allocate the sale to lots
+		remainingQuantity := sellTx.Quantity
+		totalCostBasis := decimal.Zero
+
+		for _, lot := range taxLots {
+			if remainingQuantity.IsZero() {
+				break
+			}
+
+			// Skip lots purchased after this sale
+			if lot.PurchaseDate.After(sellTx.Date) {
+				continue
+			}
+
+			// Determine how much to take from this lot
+			quantityFromLot := lot.Quantity
+			if quantityFromLot.GreaterThan(remainingQuantity) {
+				quantityFromLot = remainingQuantity
+			}
+
+			// Calculate cost basis for this portion
+			costBasisPerShare := lot.GetCostPerShare()
+			costBasisForPortion := costBasisPerShare.Mul(quantityFromLot)
+			totalCostBasis = totalCostBasis.Add(costBasisForPortion)
+
+			// Calculate proceeds for this portion
+			proceedsForPortion := salePrice.Mul(quantityFromLot)
+
+			// Calculate gain/loss
+			gain := proceedsForPortion.Sub(costBasisForPortion)
+
+			// Determine if long-term or short-term
+			isLongTerm := lot.IsLongTerm(sellTx.Date)
+
+			// Create realized gain entry
+			realizedGain := &RealizedGain{
+				Symbol:       sellTx.Symbol,
+				PurchaseDate: lot.PurchaseDate,
+				SaleDate:     sellTx.Date,
+				Quantity:     quantityFromLot,
+				CostBasis:    costBasisForPortion,
+				Proceeds:     proceedsForPortion,
+				Gain:         gain,
+				IsLongTerm:   isLongTerm,
+			}
+
+			// Add to appropriate category
+			if isLongTerm {
+				report.LongTermGains = append(report.LongTermGains, realizedGain)
+				report.TotalLongTermGain = report.TotalLongTermGain.Add(gain)
+			} else {
+				report.ShortTermGains = append(report.ShortTermGains, realizedGain)
+				report.TotalShortTermGain = report.TotalShortTermGain.Add(gain)
+			}
+
+			remainingQuantity = remainingQuantity.Sub(quantityFromLot)
+		}
+	}
+
+	// Calculate total gain
+	report.TotalGain = report.TotalShortTermGain.Add(report.TotalLongTermGain)
 
 	return report, nil
 }
