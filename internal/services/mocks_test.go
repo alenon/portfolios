@@ -69,6 +69,11 @@ func (m *MockHoldingRepository) DeleteByPortfolioIDAndSymbol(portfolioID, symbol
 	return args.Error(0)
 }
 
+func (m *MockHoldingRepository) Upsert(holding *models.Holding) error {
+	args := m.Called(holding)
+	return args.Error(0)
+}
+
 // MockPortfolioRepository for testing
 type MockPortfolioRepository struct {
 	mock.Mock
