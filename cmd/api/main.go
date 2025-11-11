@@ -35,6 +35,9 @@ func main() {
 	userRepo := repository.NewUserRepository(db)
 	refreshTokenRepo := repository.NewRefreshTokenRepository(db)
 	passwordResetRepo := repository.NewPasswordResetRepository(db)
+	portfolioRepo := repository.NewPortfolioRepository(db)
+	transactionRepo := repository.NewTransactionRepository(db)
+	holdingRepo := repository.NewHoldingRepository(db)
 
 	// Initialize services
 	tokenService := services.NewTokenService(cfg.JWT.Secret)
@@ -60,6 +63,8 @@ func main() {
 		emailService,
 		1*time.Hour, // Password reset token validity duration
 	)
+	portfolioService := services.NewPortfolioService(portfolioRepo, userRepo)
+	transactionService := services.NewTransactionService(transactionRepo, portfolioRepo, holdingRepo)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(
@@ -68,6 +73,8 @@ func main() {
 		userRepo,
 		int(cfg.JWT.AccessTokenDuration.Seconds()),
 	)
+	portfolioHandler := handlers.NewPortfolioHandler(portfolioService)
+	transactionHandler := handlers.NewTransactionHandler(transactionService)
 
 	// Set up Gin router
 	router := gin.Default()
@@ -98,6 +105,33 @@ func main() {
 			{
 				authenticated.POST("/logout", authHandler.Logout)
 				authenticated.GET("/me", authHandler.GetCurrentUser)
+			}
+		}
+
+		// API v1 routes (protected)
+		v1 := api.Group("/v1")
+		v1.Use(middleware.AuthRequired(tokenService))
+		{
+			// Portfolio routes
+			portfolios := v1.Group("/portfolios")
+			{
+				portfolios.POST("", portfolioHandler.Create)
+				portfolios.GET("", portfolioHandler.GetAll)
+				portfolios.GET("/:id", portfolioHandler.GetByID)
+				portfolios.PUT("/:id", portfolioHandler.Update)
+				portfolios.DELETE("/:id", portfolioHandler.Delete)
+
+				// Transaction routes under portfolio
+				portfolios.POST("/:portfolio_id/transactions", transactionHandler.Create)
+				portfolios.GET("/:portfolio_id/transactions", transactionHandler.GetAll)
+			}
+
+			// Transaction routes
+			transactions := v1.Group("/transactions")
+			{
+				transactions.GET("/:id", transactionHandler.GetByID)
+				transactions.PUT("/:id", transactionHandler.Update)
+				transactions.DELETE("/:id", transactionHandler.Delete)
 			}
 		}
 	}
