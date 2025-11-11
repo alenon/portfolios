@@ -1,6 +1,6 @@
 # Portfolios
 
-A comprehensive portfolio management application built with Go, PostgreSQL, React, and TypeScript.
+A portfolio management backend application built with Go and PostgreSQL.
 
 ## Tech Stack
 
@@ -12,20 +12,9 @@ A comprehensive portfolio management application built with Go, PostgreSQL, Reac
 - **Authentication**: JWT (golang-jwt/jwt)
 - **Migrations**: golang-migrate
 
-### Frontend
-- **Framework**: React 18+
-- **Language**: TypeScript
-- **Build Tool**: Vite
-- **UI Library**: Material-UI (MUI)
-- **State Management**: React Query + Zustand
-- **Form Handling**: React Hook Form
-- **HTTP Client**: Axios
-- **Routing**: React Router v6
-
 ## Prerequisites
 
 - Go 1.21 or higher
-- Node.js 18 or higher
 - PostgreSQL 15 or higher
 - Docker and Docker Compose (optional)
 
@@ -35,7 +24,7 @@ A comprehensive portfolio management application built with Go, PostgreSQL, Reac
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/lenon/portfolios.git
+   git clone https://github.com/alenon/portfolios.git
    cd portfolios
    ```
 
@@ -47,13 +36,9 @@ A comprehensive portfolio management application built with Go, PostgreSQL, Reac
 
 3. **Install dependencies**
    ```bash
-   # Backend dependencies
-   go mod download
-
-   # Frontend dependencies
-   cd frontend
-   npm install
-   cd ..
+   make install
+   # Or manually:
+   # go mod download
    ```
 
 4. **Set up PostgreSQL database**
@@ -75,20 +60,12 @@ A comprehensive portfolio management application built with Go, PostgreSQL, Reac
    # go run cmd/api/main.go
    ```
 
-7. **Run the frontend dev server** (in a new terminal)
-   ```bash
-   make run-frontend
-   # Or manually:
-   # cd frontend && npm run dev
-   ```
-
-8. **Access the application**
-   - Frontend: http://localhost:5173
+7. **Access the API**
    - Backend API: http://localhost:8080
 
 ### Docker Development Setup
 
-1. **Start all services with hot-reload**
+1. **Start all services**
    ```bash
    make docker-dev
    # Or manually:
@@ -96,7 +73,6 @@ A comprehensive portfolio management application built with Go, PostgreSQL, Reac
    ```
 
 2. **Access the application**
-   - Frontend: http://localhost:5173
    - Backend API: http://localhost:8080
    - PostgreSQL: localhost:5432
 
@@ -115,14 +91,13 @@ make install           # Install all dependencies
 make migrate-up        # Run database migrations
 make migrate-down      # Rollback database migrations
 make migrate-create    # Create a new migration
-make build             # Build backend and frontend
+make build             # Build backend
 make run               # Run backend server
-make run-frontend      # Run frontend dev server
 make test              # Run all tests
 make test-coverage     # Run tests with coverage report
 make docker-up         # Start production Docker containers
 make docker-down       # Stop Docker containers
-make docker-dev        # Start development containers with hot-reload
+make docker-dev        # Start development containers
 make docker-logs       # View container logs
 make clean             # Clean build artifacts
 make lint              # Run linters
@@ -148,14 +123,6 @@ portfolios/
 ├── pkg/                  # Public packages
 ├── migrations/           # Database migrations
 ├── configs/              # Configuration files
-├── frontend/
-│   └── src/
-│       ├── components/   # React components
-│       ├── pages/        # Page components
-│       ├── services/     # API services
-│       ├── contexts/     # React contexts
-│       ├── utils/        # Utility functions
-│       └── types/        # TypeScript types
 ├── .env.example          # Environment variables template
 ├── docker-compose.yml    # Production Docker setup
 ├── docker-compose.dev.yml # Development Docker setup
@@ -171,7 +138,7 @@ See `.env.example` for all available configuration options. Key variables:
 - `DATABASE_URL`: PostgreSQL connection string
 - `JWT_SECRET`: Secret key for JWT token signing (must be at least 32 characters)
 - `SMTP_*`: Email service configuration for password reset
-- `CORS_ALLOWED_ORIGINS`: Allowed frontend origins
+- `CORS_ALLOWED_ORIGINS`: Allowed origins for CORS
 - `SERVER_PORT`: Backend server port (default: 8080)
 
 ## Testing
@@ -185,9 +152,6 @@ make test-coverage
 
 # Run backend tests only
 go test -v ./...
-
-# Run frontend tests only
-cd frontend && npm test
 ```
 
 ## Database Migrations
