@@ -6,7 +6,6 @@ help: ## Show this help
 
 install: ## Install dependencies
 	go mod download
-	cd frontend && npm install
 
 migrate-up: ## Run database migrations up
 	migrate -path migrations -database "$(DATABASE_URL)" up
@@ -23,17 +22,12 @@ migrate-create: ## Create a new migration (usage: make migrate-create NAME=creat
 
 build: ## Build the application
 	go build -o bin/api cmd/api/main.go
-	cd frontend && npm run build
 
 run: ## Run the backend server
 	go run cmd/api/main.go
 
-run-frontend: ## Run the frontend dev server
-	cd frontend && npm run dev
-
 test: ## Run all tests
 	go test -v ./...
-	cd frontend && npm test
 
 test-coverage: ## Run tests with coverage
 	go test -coverprofile=coverage.out ./...
@@ -53,13 +47,10 @@ docker-logs: ## View Docker container logs
 
 clean: ## Clean build artifacts
 	rm -rf bin/
-	rm -rf frontend/dist/
 	rm -f coverage.out
 
 lint: ## Run linters
 	golangci-lint run
-	cd frontend && npm run lint
 
 format: ## Format code
 	go fmt ./...
-	cd frontend && npm run format
