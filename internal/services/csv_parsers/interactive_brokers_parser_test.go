@@ -25,12 +25,12 @@ func TestInteractiveBrokersParser_ValidateHeaders(t *testing.T) {
 	}{
 		{
 			name:    "valid IB headers",
-			headers: []string{"DataDiscriminator", "Code", "Symbol", "Quantity"},
+			headers: []string{"DataDiscriminator", "Code", "Symbol", "Quantity", "Date/Time"},
 			wantErr: false,
 		},
 		{
-			name:    "missing Code",
-			headers: []string{"DataDiscriminator", "Symbol", "Quantity"},
+			name:    "missing Date/Time",
+			headers: []string{"DataDiscriminator", "Code", "Symbol", "Quantity"},
 			wantErr: true,
 		},
 	}
@@ -50,7 +50,7 @@ func TestInteractiveBrokersParser_ValidateHeaders(t *testing.T) {
 func TestInteractiveBrokersParser_Parse_Success(t *testing.T) {
 	parser := NewInteractiveBrokersParser()
 
-	csvData := `DataDiscriminator,Code,Symbol,Quantity,Price,Commission,DateTime
+	csvData := `DataDiscriminator,Code,Symbol,Quantity,Price,Commission,Date/Time
 Trade,O,AAPL,100,150.50,1.00,2024-01-15
 Trade,C,GOOGL,50,2800.00,1.00,2024-01-16`
 
@@ -84,7 +84,7 @@ func TestInteractiveBrokersParser_Parse_Codes(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.code, func(t *testing.T) {
 			parser := NewInteractiveBrokersParser()
-			csvData := "DataDiscriminator,Code,Symbol,Quantity,Price,DateTime\nTrade," + tt.code + ",AAPL,100,150.00,2024-01-15"
+			csvData := "DataDiscriminator,Code,Symbol,Quantity,Price,Date/Time\nTrade," + tt.code + ",AAPL,100,150.00,2024-01-15"
 			reader := strings.NewReader(csvData)
 			transactions, errors, err := parser.Parse(reader)
 
