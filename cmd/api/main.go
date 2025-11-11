@@ -130,8 +130,28 @@ func main() {
 
 	// Initialize background job scheduler
 	scheduler := jobs.NewScheduler()
+
+	// Add corporate action detection job
 	corporateActionJob := jobs.NewCorporateActionDetectionJob(corporateActionMonitor)
 	scheduler.AddJob(corporateActionJob)
+
+	// Add market data jobs (only if market data service is available)
+	if marketDataService != nil {
+		// Price update job - refreshes market data cache
+		priceUpdateJob := jobs.NewPriceUpdateJob(marketDataService)
+		scheduler.AddJob(priceUpdateJob)
+
+		// Performance snapshot job - generates daily snapshots
+		// Note: Simplified version - full implementation requires repository enhancements
+		snapshotJob := jobs.NewSnapshotGenerationJob()
+		scheduler.AddJob(snapshotJob)
+
+		// Cleanup job - cleans up stale data
+		cleanupJob := jobs.NewCleanupJob(marketDataService, 365)
+		scheduler.AddJob(cleanupJob)
+
+		log.Println("Market data background jobs initialized")
+	}
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(
