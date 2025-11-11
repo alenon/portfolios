@@ -881,7 +881,6 @@ func TestApplyTickerChange_Success(t *testing.T) {
 	transactionRepo.AssertExpectations(t)
 }
 
-
 func TestApplyTickerChange_UnauthorizedAccess(t *testing.T) {
 	portfolioRepo := new(MockPortfolioRepository)
 	holdingRepo := new(MockHoldingRepository)
