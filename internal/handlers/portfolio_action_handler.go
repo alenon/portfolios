@@ -326,10 +326,10 @@ func (h *PortfolioActionHandler) ApproveAction(c *gin.Context) {
 		if applyErr == nil {
 			now := time.Now().UTC()
 			action.AppliedAt = &now
-			if err := h.portfolioActionRepo.Update(action); err != nil {
-				// Log the error but don't fail the request - the action is already approved
-				// In production, this would be logged to an error tracking system
-			}
+			// Attempt to update the action as applied
+			// We intentionally ignore errors here - the action is already approved
+			// In production, this would be logged to an error tracking system
+			_ = h.portfolioActionRepo.Update(action)
 		}
 		// If there was an error applying, we don't fail the approval
 		// The action remains approved but not applied, allowing manual retry
