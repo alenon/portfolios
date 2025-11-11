@@ -490,7 +490,7 @@ func TestTransactionService_Update(t *testing.T) {
 			models.TransactionTypeBuy,
 			"AAPL",
 			time.Now(),
-			decimal.NewFromInt(15), // Changed quantity
+			decimal.NewFromInt(15),       // Changed quantity
 			decimal.NewFromFloat(155.00), // Changed price
 			decimal.Zero,
 			"USD",

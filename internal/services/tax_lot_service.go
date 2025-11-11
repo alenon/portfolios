@@ -50,12 +50,12 @@ type TaxLossOpportunity struct {
 
 // TaxReport represents a tax report for a given year
 type TaxReport struct {
-	Year                 int               `json:"year"`
-	ShortTermGains       []*RealizedGain   `json:"short_term_gains"`
-	LongTermGains        []*RealizedGain   `json:"long_term_gains"`
-	TotalShortTermGain   decimal.Decimal   `json:"total_short_term_gain"`
-	TotalLongTermGain    decimal.Decimal   `json:"total_long_term_gain"`
-	TotalGain            decimal.Decimal   `json:"total_gain"`
+	Year               int             `json:"year"`
+	ShortTermGains     []*RealizedGain `json:"short_term_gains"`
+	LongTermGains      []*RealizedGain `json:"long_term_gains"`
+	TotalShortTermGain decimal.Decimal `json:"total_short_term_gain"`
+	TotalLongTermGain  decimal.Decimal `json:"total_long_term_gain"`
+	TotalGain          decimal.Decimal `json:"total_gain"`
 }
 
 // RealizedGain represents a realized gain or loss

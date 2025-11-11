@@ -8,16 +8,16 @@ import (
 
 // PortfolioActionResponse represents a pending corporate action for a portfolio
 type PortfolioActionResponse struct {
-	ID                string                      `json:"id"`
-	PortfolioID       string                      `json:"portfolio_id"`
-	Status            string                      `json:"status"`
-	AffectedSymbol    string                      `json:"affected_symbol"`
-	SharesAffected    int64                       `json:"shares_affected"`
-	DetectedAt        time.Time                   `json:"detected_at"`
-	ReviewedAt        *time.Time                  `json:"reviewed_at,omitempty"`
-	AppliedAt         *time.Time                  `json:"applied_at,omitempty"`
-	Notes             string                      `json:"notes,omitempty"`
-	CorporateAction   *CorporateActionResponse    `json:"corporate_action"`
+	ID              string                   `json:"id"`
+	PortfolioID     string                   `json:"portfolio_id"`
+	Status          string                   `json:"status"`
+	AffectedSymbol  string                   `json:"affected_symbol"`
+	SharesAffected  int64                    `json:"shares_affected"`
+	DetectedAt      time.Time                `json:"detected_at"`
+	ReviewedAt      *time.Time               `json:"reviewed_at,omitempty"`
+	AppliedAt       *time.Time               `json:"applied_at,omitempty"`
+	Notes           string                   `json:"notes,omitempty"`
+	CorporateAction *CorporateActionResponse `json:"corporate_action"`
 }
 
 // CorporateActionResponse represents a corporate action in API responses
@@ -47,9 +47,9 @@ type RejectActionRequest struct {
 
 // PortfolioActionSummary provides a summary of pending actions for a portfolio
 type PortfolioActionSummary struct {
-	PortfolioID    string `json:"portfolio_id"`
-	PendingCount   int    `json:"pending_count"`
-	ApprovedCount  int    `json:"approved_count"`
-	RejectedCount  int    `json:"rejected_count"`
-	AppliedCount   int    `json:"applied_count"`
+	PortfolioID   string `json:"portfolio_id"`
+	PendingCount  int    `json:"pending_count"`
+	ApprovedCount int    `json:"approved_count"`
+	RejectedCount int    `json:"rejected_count"`
+	AppliedCount  int    `json:"applied_count"`
 }

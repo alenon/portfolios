@@ -49,12 +49,12 @@ type RealizedGainResponse struct {
 
 // TaxReportResponse represents a tax report in API responses
 type TaxReportResponse struct {
-	Year               int                       `json:"year"`
-	ShortTermGains     []*RealizedGainResponse   `json:"short_term_gains"`
-	LongTermGains      []*RealizedGainResponse   `json:"long_term_gains"`
-	TotalShortTermGain decimal.Decimal           `json:"total_short_term_gain"`
-	TotalLongTermGain  decimal.Decimal           `json:"total_long_term_gain"`
-	TotalGain          decimal.Decimal           `json:"total_gain"`
+	Year               int                     `json:"year"`
+	ShortTermGains     []*RealizedGainResponse `json:"short_term_gains"`
+	LongTermGains      []*RealizedGainResponse `json:"long_term_gains"`
+	TotalShortTermGain decimal.Decimal         `json:"total_short_term_gain"`
+	TotalLongTermGain  decimal.Decimal         `json:"total_long_term_gain"`
+	TotalGain          decimal.Decimal         `json:"total_gain"`
 }
 
 // TaxLotAllocationRequest represents a request to allocate a sale to tax lots
@@ -66,12 +66,12 @@ type TaxLotAllocationRequest struct {
 
 // LotAllocationResponse represents how a sale is allocated to tax lots
 type LotAllocationResponse struct {
-	TaxLotID      string          `json:"tax_lot_id"`
-	Symbol        string          `json:"symbol"`
-	PurchaseDate  time.Time       `json:"purchase_date"`
-	Quantity      decimal.Decimal `json:"quantity"`
-	CostBasis     decimal.Decimal `json:"cost_basis"`
-	SaleProceeds  decimal.Decimal `json:"sale_proceeds,omitempty"`
-	Gain          decimal.Decimal `json:"gain,omitempty"`
-	IsLongTerm    bool            `json:"is_long_term"`
+	TaxLotID     string          `json:"tax_lot_id"`
+	Symbol       string          `json:"symbol"`
+	PurchaseDate time.Time       `json:"purchase_date"`
+	Quantity     decimal.Decimal `json:"quantity"`
+	CostBasis    decimal.Decimal `json:"cost_basis"`
+	SaleProceeds decimal.Decimal `json:"sale_proceeds,omitempty"`
+	Gain         decimal.Decimal `json:"gain,omitempty"`
+	IsLongTerm   bool            `json:"is_long_term"`
 }

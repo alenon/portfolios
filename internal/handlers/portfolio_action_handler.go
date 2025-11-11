@@ -18,7 +18,6 @@ import (
 type PortfolioActionHandler struct {
 	portfolioActionRepo repository.PortfolioActionRepository
 	portfolioRepo       repository.PortfolioRepository
-	corporateActionSvc  CorporateActionService
 }
 
 // CorporateActionService interface for applying actions

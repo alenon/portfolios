@@ -20,21 +20,21 @@ const (
 // PortfolioAction represents a corporate action that affects a specific portfolio
 // and requires user approval before being applied
 type PortfolioAction struct {
-	ID                 uuid.UUID             `gorm:"type:uuid;primaryKey" json:"id"`
-	PortfolioID        uuid.UUID             `gorm:"type:uuid;not null;index" json:"portfolio_id" validate:"required"`
-	CorporateActionID  uuid.UUID             `gorm:"type:uuid;not null;index" json:"corporate_action_id" validate:"required"`
-	Status             PortfolioActionStatus `gorm:"type:varchar(20);not null;default:'PENDING';index" json:"status"`
-	AffectedSymbol     string                `gorm:"type:varchar(20);not null" json:"affected_symbol" validate:"required"`
-	SharesAffected     int64                 `gorm:"not null" json:"shares_affected"`
-	DetectedAt         time.Time             `gorm:"not null" json:"detected_at"`
-	ReviewedAt         *time.Time            `json:"reviewed_at,omitempty"`
-	AppliedAt          *time.Time            `json:"applied_at,omitempty"`
-	ReviewedByUserID   *uuid.UUID            `gorm:"type:uuid" json:"reviewed_by_user_id,omitempty"`
-	Notes              string                `gorm:"type:text" json:"notes,omitempty"`
-	CreatedAt          time.Time             `json:"created_at"`
-	UpdatedAt          time.Time             `json:"updated_at"`
-	Portfolio          *Portfolio            `gorm:"foreignKey:PortfolioID" json:"portfolio,omitempty"`
-	CorporateAction    *CorporateAction      `gorm:"foreignKey:CorporateActionID" json:"corporate_action,omitempty"`
+	ID                uuid.UUID             `gorm:"type:uuid;primaryKey" json:"id"`
+	PortfolioID       uuid.UUID             `gorm:"type:uuid;not null;index" json:"portfolio_id" validate:"required"`
+	CorporateActionID uuid.UUID             `gorm:"type:uuid;not null;index" json:"corporate_action_id" validate:"required"`
+	Status            PortfolioActionStatus `gorm:"type:varchar(20);not null;default:'PENDING';index" json:"status"`
+	AffectedSymbol    string                `gorm:"type:varchar(20);not null" json:"affected_symbol" validate:"required"`
+	SharesAffected    int64                 `gorm:"not null" json:"shares_affected"`
+	DetectedAt        time.Time             `gorm:"not null" json:"detected_at"`
+	ReviewedAt        *time.Time            `json:"reviewed_at,omitempty"`
+	AppliedAt         *time.Time            `json:"applied_at,omitempty"`
+	ReviewedByUserID  *uuid.UUID            `gorm:"type:uuid" json:"reviewed_by_user_id,omitempty"`
+	Notes             string                `gorm:"type:text" json:"notes,omitempty"`
+	CreatedAt         time.Time             `json:"created_at"`
+	UpdatedAt         time.Time             `json:"updated_at"`
+	Portfolio         *Portfolio            `gorm:"foreignKey:PortfolioID" json:"portfolio,omitempty"`
+	CorporateAction   *CorporateAction      `gorm:"foreignKey:CorporateActionID" json:"corporate_action,omitempty"`
 }
 
 // TableName specifies the table name for the PortfolioAction model
