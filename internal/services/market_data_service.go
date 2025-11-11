@@ -72,6 +72,9 @@ type MarketDataService interface {
 
 	// RefreshCache forces a refresh of cached data
 	RefreshCache(symbol string) error
+
+	// ClearCache clears all cached data
+	ClearCache()
 }
 
 // marketDataService implements MarketDataService with caching
@@ -189,4 +192,9 @@ func (s *marketDataService) RefreshCache(symbol string) error {
 	delete(s.cache, symbol)
 	_, err := s.GetQuote(symbol)
 	return err
+}
+
+// ClearCache clears all cached data
+func (s *marketDataService) ClearCache() {
+	s.cache = make(map[string]*cachedQuote)
 }
