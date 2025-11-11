@@ -14,6 +14,12 @@ This document tracks the implementation roadmap for the portfolios backend appli
 - [x] Performance Analytics Service (TWR, MWR, annualized returns, benchmark comparison)
 - [x] Market Data Service (Alpha Vantage integration with caching)
 - [x] Performance Snapshot Service (daily performance tracking)
+- [x] Comprehensive Test Coverage
+  - DTOs: 97.3% coverage (30+ tests for all conversion functions)
+  - Middleware: 61.2% coverage (17 tests for auth, CORS, rate limiting)
+  - Handlers: 68.4% coverage (23 tests for new handlers)
+  - Overall project coverage: 49.5%
+  - All tests passing with proper mocking and edge case handling
 
 ## 🔥 High Priority
 
@@ -189,9 +195,10 @@ The product spec describes a comprehensive CLI but none exists yet.
 ## 📝 Notes
 
 ### Current State
-- **Commit:** 9fbf7f0 - Performance analytics, market data, and snapshot services
+- **Commit:** acce57e - Comprehensive test coverage improvements
 - **Branch:** `claude/implement-next-steps-011CV2X4zJNCdjMZFhrjzhbe`
 - **All tests passing:** ✅
+- **Test Coverage:** 49.5% overall (handlers: 68.4%, dto: 97.3%, middleware: 61.2%)
 
 ### Environment Variables Needed
 ```bash
@@ -237,4 +244,4 @@ SMTP_FROM=noreply@example.com
 ---
 
 *Last Updated: 2025-11-11*
-*Last Commit: feat: implement performance analytics, market data, and snapshot services*
+*Last Commit: test: add comprehensive tests for DTOs, handlers, and middleware*
