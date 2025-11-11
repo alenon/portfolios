@@ -302,8 +302,8 @@ func Skip_TestApplyMerger_Success(t *testing.T) {
 	holdingRepo.On("FindByPortfolioIDAndSymbol", portfolioID.String(), oldSymbol).Return(oldHolding, nil)
 	holdingRepo.On("FindByPortfolioIDAndSymbol", portfolioID.String(), newSymbol).Return(nil, fmt.Errorf("not found"))
 	holdingRepo.On("Create", mock.AnythingOfType("*models.Holding")).Return(nil)
-        holdingRepo.On("DeleteByPortfolioIDAndSymbol", portfolioID.String(), oldSymbol).Return(nil)
-        taxLotRepo.On("FindByPortfolioIDAndSymbol", portfolioID.String(), oldSymbol).Return([]*models.TaxLot{}, nil).Once()
+	holdingRepo.On("DeleteByPortfolioIDAndSymbol", portfolioID.String(), oldSymbol).Return(nil)
+	taxLotRepo.On("FindByPortfolioIDAndSymbol", portfolioID.String(), oldSymbol).Return([]*models.TaxLot{}, nil).Once()
 	taxLotRepo.On("DeleteByPortfolioIDAndSymbol", portfolioID.String(), oldSymbol).Return(nil)
 	transactionRepo.On("Create", mock.AnythingOfType("*models.Transaction")).Return(nil).Times(2) // SELL and BUY
 
