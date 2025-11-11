@@ -38,6 +38,7 @@ func main() {
 	portfolioRepo := repository.NewPortfolioRepository(db)
 	transactionRepo := repository.NewTransactionRepository(db)
 	holdingRepo := repository.NewHoldingRepository(db)
+	taxLotRepo := repository.NewTaxLotRepository(db)
 
 	// Initialize services
 	tokenService := services.NewTokenService(cfg.JWT.Secret)
@@ -65,6 +66,7 @@ func main() {
 	)
 	portfolioService := services.NewPortfolioService(portfolioRepo, userRepo)
 	transactionService := services.NewTransactionService(transactionRepo, portfolioRepo, holdingRepo)
+	taxLotService := services.NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(
@@ -75,6 +77,7 @@ func main() {
 	)
 	portfolioHandler := handlers.NewPortfolioHandler(portfolioService)
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
+	taxLotHandler := handlers.NewTaxLotHandler(taxLotService)
 
 	// Set up Gin router
 	router := gin.Default()
@@ -133,6 +136,18 @@ func main() {
 				transactions.PUT("/:id", transactionHandler.Update)
 				transactions.DELETE("/:id", transactionHandler.Delete)
 			}
+
+			// Tax lot routes
+			taxLots := v1.Group("/tax-lots")
+			{
+				taxLots.GET("/:id", taxLotHandler.GetByID)
+			}
+
+			// Portfolio-specific tax lot routes
+			v1.GET("/portfolios/:portfolio_id/tax-lots", taxLotHandler.GetAll)
+			v1.POST("/portfolios/:portfolio_id/tax-lots/allocate", taxLotHandler.AllocateSale)
+			v1.GET("/portfolios/:portfolio_id/tax-lots/harvest", taxLotHandler.IdentifyTaxLossOpportunities)
+			v1.POST("/portfolios/:portfolio_id/tax-lots/report", taxLotHandler.GenerateTaxReport)
 		}
 	}
 
