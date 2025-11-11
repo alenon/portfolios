@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -227,6 +228,7 @@ func (s *csvImportService) ImportBulk(portfolioID, userID string, req dto.BulkIm
 		if err := s.updateHoldingsForTransaction(transaction); err != nil {
 			// Log error but don't fail the import
 			// Holdings can be recalculated later if needed
+			log.Printf("Warning: Failed to update holdings for transaction %s: %v", transaction.ID, err)
 		}
 
 		result.ValidationResults = append(result.ValidationResults, validationResult)
@@ -331,6 +333,7 @@ func (s *csvImportService) DeleteImportBatch(portfolioID, userID string, batchID
 	for symbol := range affectedSymbols {
 		if err := s.recalculateHoldingsForSymbol(portfolioID, symbol); err != nil {
 			// Log error but don't fail the deletion
+			log.Printf("Warning: Failed to recalculate holdings for symbol %s in portfolio %s: %v", symbol, portfolioID, err)
 		}
 	}
 
