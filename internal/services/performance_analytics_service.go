@@ -22,26 +22,26 @@ type PerformanceAnalyticsService interface {
 
 // TWRResult represents the Time-Weighted Return calculation result
 type TWRResult struct {
-	StartDate      time.Time       `json:"start_date"`
-	EndDate        time.Time       `json:"end_date"`
-	TWR            decimal.Decimal `json:"twr"`
-	TWRPercent     decimal.Decimal `json:"twr_percent"`
-	AnnualizedTWR  decimal.Decimal `json:"annualized_twr"`
-	NumPeriods     int             `json:"num_periods"`
-	StartingValue  decimal.Decimal `json:"starting_value"`
-	EndingValue    decimal.Decimal `json:"ending_value"`
+	StartDate     time.Time       `json:"start_date"`
+	EndDate       time.Time       `json:"end_date"`
+	TWR           decimal.Decimal `json:"twr"`
+	TWRPercent    decimal.Decimal `json:"twr_percent"`
+	AnnualizedTWR decimal.Decimal `json:"annualized_twr"`
+	NumPeriods    int             `json:"num_periods"`
+	StartingValue decimal.Decimal `json:"starting_value"`
+	EndingValue   decimal.Decimal `json:"ending_value"`
 }
 
 // MWRResult represents the Money-Weighted Return (IRR) calculation result
 type MWRResult struct {
-	StartDate      time.Time       `json:"start_date"`
-	EndDate        time.Time       `json:"end_date"`
-	MWR            decimal.Decimal `json:"mwr"`
-	MWRPercent     decimal.Decimal `json:"mwr_percent"`
-	AnnualizedMWR  decimal.Decimal `json:"annualized_mwr"`
-	TotalCashFlow  decimal.Decimal `json:"total_cash_flow"`
-	StartingValue  decimal.Decimal `json:"starting_value"`
-	EndingValue    decimal.Decimal `json:"ending_value"`
+	StartDate     time.Time       `json:"start_date"`
+	EndDate       time.Time       `json:"end_date"`
+	MWR           decimal.Decimal `json:"mwr"`
+	MWRPercent    decimal.Decimal `json:"mwr_percent"`
+	AnnualizedMWR decimal.Decimal `json:"annualized_mwr"`
+	TotalCashFlow decimal.Decimal `json:"total_cash_flow"`
+	StartingValue decimal.Decimal `json:"starting_value"`
+	EndingValue   decimal.Decimal `json:"ending_value"`
 }
 
 // AnnualizedReturnResult represents annualized return calculation
@@ -56,40 +56,40 @@ type AnnualizedReturnResult struct {
 
 // BenchmarkComparisonResult represents portfolio vs benchmark comparison
 type BenchmarkComparisonResult struct {
-	StartDate              time.Time       `json:"start_date"`
-	EndDate                time.Time       `json:"end_date"`
-	BenchmarkSymbol        string          `json:"benchmark_symbol"`
-	PortfolioReturn        decimal.Decimal `json:"portfolio_return"`
-	BenchmarkReturn        decimal.Decimal `json:"benchmark_return"`
-	Alpha                  decimal.Decimal `json:"alpha"`
-	PortfolioAnnualized    decimal.Decimal `json:"portfolio_annualized"`
-	BenchmarkAnnualized    decimal.Decimal `json:"benchmark_annualized"`
-	Outperformance         decimal.Decimal `json:"outperformance"`
+	StartDate           time.Time       `json:"start_date"`
+	EndDate             time.Time       `json:"end_date"`
+	BenchmarkSymbol     string          `json:"benchmark_symbol"`
+	PortfolioReturn     decimal.Decimal `json:"portfolio_return"`
+	BenchmarkReturn     decimal.Decimal `json:"benchmark_return"`
+	Alpha               decimal.Decimal `json:"alpha"`
+	PortfolioAnnualized decimal.Decimal `json:"portfolio_annualized"`
+	BenchmarkAnnualized decimal.Decimal `json:"benchmark_annualized"`
+	Outperformance      decimal.Decimal `json:"outperformance"`
 }
 
 // PerformanceMetrics represents comprehensive performance metrics
 type PerformanceMetrics struct {
-	StartDate            time.Time       `json:"start_date"`
-	EndDate              time.Time       `json:"end_date"`
-	StartingValue        decimal.Decimal `json:"starting_value"`
-	EndingValue          decimal.Decimal `json:"ending_value"`
-	TotalReturn          decimal.Decimal `json:"total_return"`
-	TotalReturnPct       decimal.Decimal `json:"total_return_pct"`
-	TimeWeightedReturn   decimal.Decimal `json:"time_weighted_return"`
-	MoneyWeightedReturn  decimal.Decimal `json:"money_weighted_return"`
-	AnnualizedReturn     decimal.Decimal `json:"annualized_return"`
-	TotalDeposits        decimal.Decimal `json:"total_deposits"`
-	TotalWithdrawals     decimal.Decimal `json:"total_withdrawals"`
-	NetCashFlow          decimal.Decimal `json:"net_cash_flow"`
-	Years                float64         `json:"years"`
+	StartDate           time.Time       `json:"start_date"`
+	EndDate             time.Time       `json:"end_date"`
+	StartingValue       decimal.Decimal `json:"starting_value"`
+	EndingValue         decimal.Decimal `json:"ending_value"`
+	TotalReturn         decimal.Decimal `json:"total_return"`
+	TotalReturnPct      decimal.Decimal `json:"total_return_pct"`
+	TimeWeightedReturn  decimal.Decimal `json:"time_weighted_return"`
+	MoneyWeightedReturn decimal.Decimal `json:"money_weighted_return"`
+	AnnualizedReturn    decimal.Decimal `json:"annualized_return"`
+	TotalDeposits       decimal.Decimal `json:"total_deposits"`
+	TotalWithdrawals    decimal.Decimal `json:"total_withdrawals"`
+	NetCashFlow         decimal.Decimal `json:"net_cash_flow"`
+	Years               float64         `json:"years"`
 }
 
 // performanceAnalyticsService implements PerformanceAnalyticsService interface
 type performanceAnalyticsService struct {
-	portfolioRepo  repository.PortfolioRepository
+	portfolioRepo   repository.PortfolioRepository
 	transactionRepo repository.TransactionRepository
-	snapshotRepo   repository.PerformanceSnapshotRepository
-	marketDataSvc  MarketDataService
+	snapshotRepo    repository.PerformanceSnapshotRepository
+	marketDataSvc   MarketDataService
 }
 
 // NewPerformanceAnalyticsService creates a new PerformanceAnalyticsService instance
@@ -100,10 +100,10 @@ func NewPerformanceAnalyticsService(
 	marketDataSvc MarketDataService,
 ) PerformanceAnalyticsService {
 	return &performanceAnalyticsService{
-		portfolioRepo:  portfolioRepo,
+		portfolioRepo:   portfolioRepo,
 		transactionRepo: transactionRepo,
-		snapshotRepo:   snapshotRepo,
-		marketDataSvc:  marketDataSvc,
+		snapshotRepo:    snapshotRepo,
+		marketDataSvc:   marketDataSvc,
 	}
 }
 
@@ -178,14 +178,14 @@ func (s *performanceAnalyticsService) CalculateTWR(
 	}
 
 	return &TWRResult{
-		StartDate:      startDate,
-		EndDate:        endDate,
-		TWR:            twr,
-		TWRPercent:     twrPercent,
-		AnnualizedTWR:  annualizedTWR,
-		NumPeriods:     len(snapshots) - 1,
-		StartingValue:  startingValue,
-		EndingValue:    endingValue,
+		StartDate:     startDate,
+		EndDate:       endDate,
+		TWR:           twr,
+		TWRPercent:    twrPercent,
+		AnnualizedTWR: annualizedTWR,
+		NumPeriods:    len(snapshots) - 1,
+		StartingValue: startingValue,
+		EndingValue:   endingValue,
 	}, nil
 }
 
@@ -247,14 +247,14 @@ func (s *performanceAnalyticsService) CalculateMWR(
 	}
 
 	return &MWRResult{
-		StartDate:      startDate,
-		EndDate:        endDate,
-		MWR:            mwr,
-		MWRPercent:     mwrPercent,
-		AnnualizedMWR:  annualizedMWR,
-		TotalCashFlow:  totalCashFlow,
-		StartingValue:  startingValue,
-		EndingValue:    endingValue,
+		StartDate:     startDate,
+		EndDate:       endDate,
+		MWR:           mwr,
+		MWRPercent:    mwrPercent,
+		AnnualizedMWR: annualizedMWR,
+		TotalCashFlow: totalCashFlow,
+		StartingValue: startingValue,
+		EndingValue:   endingValue,
 	}, nil
 }
 
@@ -540,7 +540,7 @@ func (s *performanceAnalyticsService) buildCashFlowSeries(
 	// Add transaction cash flows
 	for _, tx := range transactions {
 		if (tx.Date.After(startDate) || tx.Date.Equal(startDate)) &&
-		   (tx.Date.Before(endDate) || tx.Date.Equal(endDate)) {
+			(tx.Date.Before(endDate) || tx.Date.Equal(endDate)) {
 			amount := decimal.Zero
 			if tx.IsBuy() {
 				amount = tx.GetTotalCost().Neg() // Deposits are negative (outflows)

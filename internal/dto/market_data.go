@@ -26,16 +26,16 @@ type ExchangeRateRequest struct {
 
 // QuoteResponse represents a stock quote response
 type QuoteResponse struct {
-	Symbol           string          `json:"symbol"`
-	Price            decimal.Decimal `json:"price"`
-	Open             decimal.Decimal `json:"open"`
-	High             decimal.Decimal `json:"high"`
-	Low              decimal.Decimal `json:"low"`
-	Volume           int64           `json:"volume"`
-	PreviousClose    decimal.Decimal `json:"previous_close"`
-	Change           decimal.Decimal `json:"change"`
-	ChangePercent    decimal.Decimal `json:"change_percent"`
-	LastTradeTime    time.Time       `json:"last_updated"`
+	Symbol        string          `json:"symbol"`
+	Price         decimal.Decimal `json:"price"`
+	Open          decimal.Decimal `json:"open"`
+	High          decimal.Decimal `json:"high"`
+	Low           decimal.Decimal `json:"low"`
+	Volume        int64           `json:"volume"`
+	PreviousClose decimal.Decimal `json:"previous_close"`
+	Change        decimal.Decimal `json:"change"`
+	ChangePercent decimal.Decimal `json:"change_percent"`
+	LastTradeTime time.Time       `json:"last_updated"`
 }
 
 // QuotesResponse represents multiple quotes response
@@ -55,7 +55,7 @@ type HistoricalPriceResponse struct {
 
 // HistoricalPricesResponse represents historical prices response
 type HistoricalPricesResponse struct {
-	Symbol string                         `json:"symbol"`
+	Symbol string                     `json:"symbol"`
 	Prices []*HistoricalPriceResponse `json:"prices"`
 }
 
@@ -74,16 +74,16 @@ func ToQuoteResponse(quote *services.Quote) *QuoteResponse {
 	}
 
 	return &QuoteResponse{
-		Symbol:           quote.Symbol,
-		Price:            quote.Price,
-		Open:             quote.Open,
-		High:             quote.High,
-		Low:              quote.Low,
-		Volume:           quote.Volume,
-		PreviousClose:    quote.PreviousClose,
-		Change:           quote.Change,
-		ChangePercent:    quote.ChangePercent,
-		LastTradeTime:    quote.LastUpdated,
+		Symbol:        quote.Symbol,
+		Price:         quote.Price,
+		Open:          quote.Open,
+		High:          quote.High,
+		Low:           quote.Low,
+		Volume:        quote.Volume,
+		PreviousClose: quote.PreviousClose,
+		Change:        quote.Change,
+		ChangePercent: quote.ChangePercent,
+		LastTradeTime: quote.LastUpdated,
 	}
 }
 
