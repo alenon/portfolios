@@ -39,6 +39,11 @@ func NewCorporateActionMonitor(
 func (m *CorporateActionMonitor) DetectAndSuggestActions(ctx context.Context) error {
 	log.Println("Starting corporate action detection...")
 
+	// Check for context cancellation early
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("context cancelled: %w", err)
+	}
+
 	// Step 1: Fetch new/unapplied corporate actions
 	actions, err := m.corporateActionRepo.FindUnapplied()
 	if err != nil {

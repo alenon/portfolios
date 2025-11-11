@@ -13,9 +13,9 @@ import (
 )
 
 func TestNewTaxLotService(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -23,9 +23,9 @@ func TestNewTaxLotService(t *testing.T) {
 }
 
 func TestTaxLotService_GetByID_Success(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -59,9 +59,9 @@ func TestTaxLotService_GetByID_Success(t *testing.T) {
 }
 
 func TestTaxLotService_GetByID_TaxLotNotFound(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -77,9 +77,9 @@ func TestTaxLotService_GetByID_TaxLotNotFound(t *testing.T) {
 }
 
 func TestTaxLotService_GetByID_PortfolioNotFound(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -105,9 +105,9 @@ func TestTaxLotService_GetByID_PortfolioNotFound(t *testing.T) {
 }
 
 func TestTaxLotService_GetByID_Unauthorized(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -140,9 +140,9 @@ func TestTaxLotService_GetByID_Unauthorized(t *testing.T) {
 }
 
 func TestTaxLotService_GetByPortfolioID_Success(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -182,9 +182,9 @@ func TestTaxLotService_GetByPortfolioID_Success(t *testing.T) {
 }
 
 func TestTaxLotService_GetByPortfolioID_Unauthorized(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -208,9 +208,9 @@ func TestTaxLotService_GetByPortfolioID_Unauthorized(t *testing.T) {
 }
 
 func TestTaxLotService_GetByPortfolioIDAndSymbol_Success(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -246,9 +246,9 @@ func TestTaxLotService_GetByPortfolioIDAndSymbol_Success(t *testing.T) {
 }
 
 func TestTaxLotService_AllocateSale_FIFO(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -312,9 +312,9 @@ func TestTaxLotService_AllocateSale_FIFO(t *testing.T) {
 }
 
 func TestTaxLotService_AllocateSale_LIFO(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -373,9 +373,9 @@ func TestTaxLotService_AllocateSale_LIFO(t *testing.T) {
 }
 
 func TestTaxLotService_AllocateSale_InsufficientShares(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -419,9 +419,9 @@ func TestTaxLotService_AllocateSale_InsufficientShares(t *testing.T) {
 }
 
 func TestTaxLotService_AllocateSale_NoTaxLots(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -454,9 +454,9 @@ func TestTaxLotService_AllocateSale_NoTaxLots(t *testing.T) {
 }
 
 func TestTaxLotService_IdentifyTaxLossOpportunities_Success(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -498,9 +498,9 @@ func TestTaxLotService_IdentifyTaxLossOpportunities_Success(t *testing.T) {
 }
 
 func TestTaxLotService_IdentifyTaxLossOpportunities_Unauthorized(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -529,9 +529,9 @@ func TestTaxLotService_IdentifyTaxLossOpportunities_Unauthorized(t *testing.T) {
 }
 
 func TestTaxLotService_GenerateTaxReport_Success(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -562,9 +562,9 @@ func TestTaxLotService_GenerateTaxReport_Success(t *testing.T) {
 }
 
 func TestTaxLotService_GenerateTaxReport_PortfolioNotFound(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
@@ -586,9 +586,9 @@ func TestTaxLotService_GenerateTaxReport_PortfolioNotFound(t *testing.T) {
 }
 
 func TestTaxLotService_GenerateTaxReport_Unauthorized(t *testing.T) {
-	taxLotRepo := new(mocks.TaxLotRepositoryMock)
-	portfolioRepo := new(mocks.PortfolioRepositoryMock)
-	holdingRepo := new(mocks.HoldingRepositoryMock)
+	taxLotRepo := mocks.NewTaxLotRepository(t)
+	portfolioRepo := mocks.NewPortfolioRepository(t)
+	holdingRepo := mocks.NewHoldingRepository(t)
 
 	service := NewTaxLotService(taxLotRepo, portfolioRepo, holdingRepo)
 
