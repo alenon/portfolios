@@ -6,37 +6,15 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+
+	"github.com/lenon/portfolios/internal/dto"
 )
 
-// Quote represents a stock quote with price and metadata
-type Quote struct {
-	Symbol          string
-	Price           decimal.Decimal
-	Open            decimal.Decimal
-	High            decimal.Decimal
-	Low             decimal.Decimal
-	Volume          int64
-	PreviousClose   decimal.Decimal
-	Change          decimal.Decimal
-	ChangePercent   decimal.Decimal
-	LastUpdated     time.Time
-	MarketCap       *decimal.Decimal
-	PE              *decimal.Decimal
-	Week52High      *decimal.Decimal
-	Week52Low       *decimal.Decimal
-	AverageDailyVol *int64
-}
+// Quote is an alias for dto.Quote for backward compatibility
+type Quote = dto.Quote
 
-// HistoricalPrice represents a historical price point
-type HistoricalPrice struct {
-	Date     time.Time
-	Open     decimal.Decimal
-	High     decimal.Decimal
-	Low      decimal.Decimal
-	Close    decimal.Decimal
-	Volume   int64
-	AdjClose *decimal.Decimal
-}
+// HistoricalPrice is an alias for dto.HistoricalPrice for backward compatibility
+type HistoricalPrice = dto.HistoricalPrice
 
 // MarketDataProvider defines the interface for market data providers
 type MarketDataProvider interface {

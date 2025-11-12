@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lenon/portfolios/internal/models"
-	"github.com/lenon/portfolios/internal/services"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/lenon/portfolios/internal/models"
 )
 
 // Test Portfolio DTOs
@@ -197,7 +197,7 @@ func TestToHoldingListResponse(t *testing.T) {
 
 // Test Market Data DTOs
 func TestToQuoteResponse(t *testing.T) {
-	quote := &services.Quote{
+	quote := &Quote{
 		Symbol:        "AAPL",
 		Price:         decimal.NewFromFloat(150.25),
 		Open:          decimal.NewFromFloat(149.50),
@@ -224,7 +224,7 @@ func TestToQuoteResponse_Nil(t *testing.T) {
 }
 
 func TestToQuotesResponse(t *testing.T) {
-	quotes := map[string]*services.Quote{
+	quotes := map[string]*Quote{
 		"AAPL": {
 			Symbol: "AAPL",
 			Price:  decimal.NewFromFloat(150.25),
@@ -245,7 +245,7 @@ func TestToQuotesResponse(t *testing.T) {
 
 func TestToHistoricalPriceResponse(t *testing.T) {
 	now := time.Now()
-	price := &services.HistoricalPrice{
+	price := &HistoricalPrice{
 		Date:   now,
 		Open:   decimal.NewFromFloat(149.50),
 		High:   decimal.NewFromFloat(151.00),
@@ -268,7 +268,7 @@ func TestToHistoricalPriceResponse_Nil(t *testing.T) {
 }
 
 func TestToHistoricalPricesResponse(t *testing.T) {
-	prices := []*services.HistoricalPrice{
+	prices := []*HistoricalPrice{
 		{
 			Date:  time.Now(),
 			Close: decimal.NewFromFloat(150.25),
@@ -298,7 +298,7 @@ func TestToExchangeRateResponse(t *testing.T) {
 
 // Test Performance Analytics DTOs
 func TestToPerformanceMetricsResponse(t *testing.T) {
-	metrics := &services.PerformanceMetrics{
+	metrics := &PerformanceMetrics{
 		StartDate:           time.Now().AddDate(-1, 0, 0),
 		EndDate:             time.Now(),
 		StartingValue:       decimal.NewFromInt(10000),
@@ -329,7 +329,7 @@ func TestToPerformanceMetricsResponse_Nil(t *testing.T) {
 }
 
 func TestToTWRResponse(t *testing.T) {
-	twr := &services.TWRResult{
+	twr := &TWRResult{
 		StartDate:     time.Now().AddDate(-1, 0, 0),
 		EndDate:       time.Now(),
 		TWR:           decimal.NewFromFloat(0.20),
@@ -353,7 +353,7 @@ func TestToTWRResponse_Nil(t *testing.T) {
 }
 
 func TestToMWRResponse(t *testing.T) {
-	mwr := &services.MWRResult{
+	mwr := &MWRResult{
 		StartDate:     time.Now().AddDate(-1, 0, 0),
 		EndDate:       time.Now(),
 		MWR:           decimal.NewFromFloat(0.18),
@@ -377,7 +377,7 @@ func TestToMWRResponse_Nil(t *testing.T) {
 }
 
 func TestToAnnualizedReturnResponse(t *testing.T) {
-	result := &services.AnnualizedReturnResult{
+	result := &AnnualizedReturnResult{
 		StartDate:        time.Now().AddDate(-1, 0, 0),
 		EndDate:          time.Now(),
 		TotalReturn:      decimal.NewFromInt(2000),
@@ -400,7 +400,7 @@ func TestToAnnualizedReturnResponse_Nil(t *testing.T) {
 }
 
 func TestToBenchmarkComparisonResponse(t *testing.T) {
-	comparison := &services.BenchmarkComparisonResult{
+	comparison := &BenchmarkComparisonResult{
 		StartDate:           time.Now().AddDate(-1, 0, 0),
 		EndDate:             time.Now(),
 		BenchmarkSymbol:     "SPY",

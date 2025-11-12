@@ -121,10 +121,37 @@ func main() {
 		portfolioActionRepo,
 	)
 
+	// Initialize CSV import service
+	csvImportService := services.NewCSVImportService(
+		transactionRepo,
+		portfolioRepo,
+		holdingRepo,
+	)
+
 	// Initialize background job scheduler
 	scheduler := jobs.NewScheduler()
+
+	// Add corporate action detection job
 	corporateActionJob := jobs.NewCorporateActionDetectionJob(corporateActionMonitor)
 	scheduler.AddJob(corporateActionJob)
+
+	// Add market data jobs (only if market data service is available)
+	if marketDataService != nil {
+		// Price update job - refreshes market data cache
+		priceUpdateJob := jobs.NewPriceUpdateJob(marketDataService)
+		scheduler.AddJob(priceUpdateJob)
+
+		// Performance snapshot job - generates daily snapshots
+		// Note: Simplified version - full implementation requires repository enhancements
+		snapshotJob := jobs.NewSnapshotGenerationJob()
+		scheduler.AddJob(snapshotJob)
+
+		// Cleanup job - cleans up stale data
+		cleanupJob := jobs.NewCleanupJob(marketDataService, 365)
+		scheduler.AddJob(cleanupJob)
+
+		log.Println("Market data background jobs initialized")
+	}
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(
@@ -153,6 +180,9 @@ func main() {
 
 	// Initialize performance snapshot handler
 	performanceSnapshotHandler := handlers.NewPerformanceSnapshotHandler(performanceSnapshotService)
+
+	// Initialize CSV import handler
+	importHandler := handlers.NewImportHandler(csvImportService)
 
 	// Set up Gin router
 	router := gin.Default()
@@ -202,6 +232,12 @@ func main() {
 				// Transaction routes under portfolio
 				portfolios.POST("/:portfolio_id/transactions", transactionHandler.Create)
 				portfolios.GET("/:portfolio_id/transactions", transactionHandler.GetAll)
+
+				// CSV import routes
+				portfolios.POST("/:id/transactions/import/csv", importHandler.ImportCSV)
+				portfolios.POST("/:id/transactions/import/bulk", importHandler.ImportBulk)
+				portfolios.GET("/:id/imports/batches", importHandler.GetImportBatches)
+				portfolios.DELETE("/:id/imports/batches/:batch_id", importHandler.DeleteImportBatch)
 
 				// Holding routes under portfolio
 				portfolios.GET("/:id/holdings", holdingHandler.GetAll)

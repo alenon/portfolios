@@ -3,7 +3,6 @@ package dto
 import (
 	"time"
 
-	"github.com/lenon/portfolios/internal/services"
 	"github.com/shopspring/decimal"
 )
 
@@ -67,8 +66,8 @@ type ExchangeRateResponse struct {
 	Time time.Time       `json:"time"`
 }
 
-// ToQuoteResponse converts service Quote to DTO
-func ToQuoteResponse(quote *services.Quote) *QuoteResponse {
+// ToQuoteResponse converts Quote to QuoteResponse
+func ToQuoteResponse(quote *Quote) *QuoteResponse {
 	if quote == nil {
 		return nil
 	}
@@ -87,8 +86,8 @@ func ToQuoteResponse(quote *services.Quote) *QuoteResponse {
 	}
 }
 
-// ToQuotesResponse converts service quotes map to DTO
-func ToQuotesResponse(quotes map[string]*services.Quote) *QuotesResponse {
+// ToQuotesResponse converts quotes map to QuotesResponse
+func ToQuotesResponse(quotes map[string]*Quote) *QuotesResponse {
 	response := &QuotesResponse{
 		Quotes: make(map[string]*QuoteResponse),
 	}
@@ -100,8 +99,8 @@ func ToQuotesResponse(quotes map[string]*services.Quote) *QuotesResponse {
 	return response
 }
 
-// ToHistoricalPriceResponse converts service HistoricalPrice to DTO
-func ToHistoricalPriceResponse(price *services.HistoricalPrice) *HistoricalPriceResponse {
+// ToHistoricalPriceResponse converts HistoricalPrice to HistoricalPriceResponse
+func ToHistoricalPriceResponse(price *HistoricalPrice) *HistoricalPriceResponse {
 	if price == nil {
 		return nil
 	}
@@ -116,8 +115,8 @@ func ToHistoricalPriceResponse(price *services.HistoricalPrice) *HistoricalPrice
 	}
 }
 
-// ToHistoricalPricesResponse converts service historical prices to DTO
-func ToHistoricalPricesResponse(prices []*services.HistoricalPrice) *HistoricalPricesResponse {
+// ToHistoricalPricesResponse converts historical prices to HistoricalPricesResponse
+func ToHistoricalPricesResponse(prices []*HistoricalPrice) *HistoricalPricesResponse {
 	response := &HistoricalPricesResponse{
 		Prices: make([]*HistoricalPriceResponse, 0, len(prices)),
 	}
