@@ -249,7 +249,8 @@ func runTransactionImport(cmd *cobra.Command, args []string) error {
 	portfolioID := args[0]
 	csvFile := args[1]
 
-	// Read CSV file
+	// Read CSV file provided by user
+	// #nosec G304 - File path is intentionally provided by user for import functionality
 	fileData, err := os.ReadFile(csvFile)
 	if err != nil {
 		return fmt.Errorf("failed to read CSV file: %w", err)

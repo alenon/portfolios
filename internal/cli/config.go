@@ -27,7 +27,7 @@ func LoadConfig() (*Config, error) {
 	configFile := filepath.Join(configDir, "config.yaml")
 
 	// Create config directory if it doesn't exist
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create config directory: %w", err)
 	}
 
