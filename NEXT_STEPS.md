@@ -259,12 +259,18 @@ A comprehensive CLI has been implemented with modern TUI features using Cobra, B
 ## 📝 Notes
 
 ### Current State
-- **Commit:** [Latest] - Implemented runtime home directory with YAML config and separate log files
-- **Branch:** `claude/runtime-home-directory-011CV3ZbH7U6YvrLGxsUnQbA`
+- **Commit:** c0ef85e - Configured deployment to trigger only on release tags
+- **Branch:** `claude/deploy-script-release-only-011CV3tnMm3G3Z2oTmDNd9MW`
 - **All tests passing:** ✅
-- **Test Coverage:** ~56% overall (runtime package fully tested)
+- **Test Coverage:** ~56% overall
 
 ### Recent Changes (2025-11-12)
+- **Deployment Configuration:** Modified GitHub Actions workflow to deploy only on release tags
+  - Staging: Automatically deploys on pre-release tags (e.g., v1.0.0-rc.1, v1.0.0-beta.1)
+  - Production: Automatically deploys on stable release tags (e.g., v1.0.0, v1.2.3)
+  - Build job still runs on main/develop branches for CI validation
+  - No automatic deployment on regular branch pushes
+  - Updated documentation with clear deployment strategy and examples
 - **Runtime Home Directory:** ✅ COMPLETED
   - Created runtime home directory structure (`~/.portfolios`)
   - YAML configuration file support (`~/.portfolios/config.yaml`)
@@ -345,7 +351,7 @@ SMTP_FROM=noreply@example.com
 ---
 
 *Last Updated: 2025-11-12*
-*Last Commit: feat: implement comprehensive CLI tool with modern TUI*
+*Last Commit: feat: configure deployment to trigger only on release tags*
 
 ### CLI Implementation Highlights
 - **14 new files** created for full-featured CLI
