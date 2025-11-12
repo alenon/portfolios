@@ -166,6 +166,20 @@ jobs:
           go install github.com/securego/gosec/v2/cmd/gosec@latest
           gosec -no-fail -fmt sarif -out gosec-results.sarif ./...
 
+      - name: Fix SARIF format
+        if: always()
+        run: |
+          if [ -f gosec-results.sarif ]; then
+            # Fix gosec SARIF output to be compliant with SARIF 2.1.0
+            # Remove the invalid artifactChanges fields
+            if command -v jq &> /dev/null; then
+              jq 'walk(if type == "object" then del(.artifactChanges) else . end)' gosec-results.sarif > gosec-results-fixed.sarif
+              mv gosec-results-fixed.sarif gosec-results.sarif
+            else
+              echo "jq not found, skipping SARIF fix"
+            fi
+          fi
+
       - name: Validate SARIF file
         id: validate_sarif
         run: |
