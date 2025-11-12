@@ -27,15 +27,15 @@ const (
 
 // TestContext holds the state for e2e tests
 type TestContext struct {
-	T             *testing.T
-	ConfigDir     string
-	APIBaseURL    string
-	AccessToken   string
-	RefreshToken  string
-	UserEmail     string
-	UserPassword  string
-	HTTPClient    *http.Client
-	CleanupFuncs  []func()
+	T            *testing.T
+	ConfigDir    string
+	APIBaseURL   string
+	AccessToken  string
+	RefreshToken string
+	UserEmail    string
+	UserPassword string
+	HTTPClient   *http.Client
+	CleanupFuncs []func()
 }
 
 // NewTestContext creates a new test context
@@ -51,7 +51,7 @@ func NewTestContext(t *testing.T) *TestContext {
 	}
 
 	// Ensure config directory exists
-	err := os.MkdirAll(ctx.ConfigDir, 0755)
+	err := os.MkdirAll(ctx.ConfigDir, 0750)
 	require.NoError(t, err, "Failed to create config directory")
 
 	// Add cleanup function
@@ -148,7 +148,9 @@ func (ctx *TestContext) APIRequest(method, path string, body interface{}, result
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
@@ -171,11 +173,11 @@ func (ctx *TestContext) WaitForBackend(timeout time.Duration) error {
 	for time.Now().Before(deadline) {
 		resp, err := ctx.HTTPClient.Get(ctx.APIBaseURL + "/health")
 		if err == nil && resp.StatusCode == http.StatusOK {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			return nil
 		}
 		if resp != nil {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 		}
 		time.Sleep(1 * time.Second)
 	}
@@ -237,13 +239,6 @@ func (ctx *TestContext) Login(email, password string) error {
 
 // SaveCLIConfig saves the config file for CLI commands
 func (ctx *TestContext) SaveCLIConfig() error {
-	config := map[string]interface{}{
-		"api_base_url":  ctx.APIBaseURL,
-		"access_token":  ctx.AccessToken,
-		"refresh_token": ctx.RefreshToken,
-		"output_format": "json",
-	}
-
 	configPath := filepath.Join(ctx.ConfigDir, "config.yaml")
 
 	// Create a simple YAML format

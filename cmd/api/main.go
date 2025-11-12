@@ -272,7 +272,7 @@ func main() {
 	// Health check endpoint (no authentication required)
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"status": "healthy",
+			"status":    "healthy",
 			"timestamp": time.Now().UTC().Format(time.RFC3339),
 		})
 	})

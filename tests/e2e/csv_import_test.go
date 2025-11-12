@@ -220,7 +220,7 @@ func TestCLICSVImport(t *testing.T) {
 
 	// Import CSV via CLI
 	csvPath := GetFixturePath("generic_import.csv")
-	stdout, stderr, err := ctx.RunCLI(
+	stdout, stderr, _ := ctx.RunCLI(
 		"transaction", "import",
 		fmt.Sprintf("%d", portfolioID),
 		csvPath,
@@ -383,7 +383,9 @@ func uploadCSVFile(ctx *TestContext, portfolioID uint, csvPath string, broker st
 	if err != nil {
 		return "", fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		bodyBytes, _ := io.ReadAll(resp.Body)

@@ -366,7 +366,7 @@ func TestCLITransactionDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	// Delete transaction via CLI
-	stdout, stderr, err := ctx.RunCLI(
+	stdout, stderr, _ := ctx.RunCLI(
 		"transaction", "delete",
 		fmt.Sprintf("%d", portfolioID),
 		fmt.Sprintf("%d", createResp.ID),
