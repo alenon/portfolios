@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"time"
@@ -21,9 +22,13 @@ type Logger interface {
 
 // Config holds logger configuration
 type Config struct {
-	Level      string // debug, info, warn, error
-	Format     string // json, console
-	OutputPath string // stdout, stderr, or file path
+	Level          string // debug, info, warn, error
+	Format         string // json, console
+	OutputPath     string // stdout, stderr, or file path
+	EnableConsole  bool   // Enable console output
+	EnableFile     bool   // Enable file output
+	ServerLogPath  string // Path to server log file
+	RequestLogPath string // Path to request log file
 }
 
 // AppLogger wraps zerolog.Logger
@@ -68,6 +73,85 @@ func NewLogger(config Config) *AppLogger {
 	}
 
 	return &AppLogger{logger: logger}
+}
+
+// NewLoggerWithMultipleOutputs creates a logger with multiple output destinations
+func NewLoggerWithMultipleOutputs(config Config) *AppLogger {
+	// Set log level
+	level := parseLevel(config.Level)
+	zerolog.SetGlobalLevel(level)
+
+	var writers []io.Writer
+
+	// Add console output if enabled
+	if config.EnableConsole {
+		if config.Format == "console" {
+			writers = append(writers, zerolog.ConsoleWriter{
+				Out:        os.Stdout,
+				TimeFormat: time.RFC3339,
+			})
+		} else {
+			writers = append(writers, os.Stdout)
+		}
+	}
+
+	// Add file output if enabled
+	if config.EnableFile && config.OutputPath != "" {
+		file, err := os.OpenFile(config.OutputPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
+		if err != nil {
+			log.Fatal().Err(err).Str("path", config.OutputPath).Msg("Failed to open log file")
+		}
+		writers = append(writers, file)
+	}
+
+	// If no writers configured, default to stdout
+	if len(writers) == 0 {
+		writers = append(writers, os.Stdout)
+	}
+
+	// Create multi-writer
+	var output io.Writer
+	if len(writers) == 1 {
+		output = writers[0]
+	} else {
+		output = io.MultiWriter(writers...)
+	}
+
+	// Create logger
+	logger := zerolog.New(output).With().Timestamp().Caller().Logger()
+
+	return &AppLogger{logger: logger}
+}
+
+// NewFileLogger creates a logger that writes to a specific file
+func NewFileLogger(logPath string, level string, format string) (*AppLogger, error) {
+	// Open log file with secure permissions (read/write for owner only)
+	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open log file: %w", err)
+	}
+
+	// Set log level
+	logLevel := parseLevel(level)
+
+	// Configure output
+	var output io.Writer = file
+	if format == "console" {
+		output = zerolog.ConsoleWriter{
+			Out:        file,
+			TimeFormat: time.RFC3339,
+		}
+	}
+
+	// Create logger
+	logger := zerolog.New(output).
+		Level(logLevel).
+		With().
+		Timestamp().
+		Caller().
+		Logger()
+
+	return &AppLogger{logger: logger}, nil
 }
 
 // Debug returns a debug level event
