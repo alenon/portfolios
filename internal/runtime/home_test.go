@@ -3,6 +3,7 @@ package runtime
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -69,13 +70,15 @@ func TestInitHomeDir(t *testing.T) {
 				t.Error("Request log path is empty")
 			}
 
-			// Verify config path is under root
-			if !filepath.HasPrefix(home.ConfigPath, home.Root) {
+			// Verify config path is under root using filepath.Rel
+			relConfig, err := filepath.Rel(home.Root, home.ConfigPath)
+			if err != nil || strings.HasPrefix(relConfig, "..") || filepath.IsAbs(relConfig) {
 				t.Error("Config path is not under root directory")
 			}
 
-			// Verify logs directory is under root
-			if !filepath.HasPrefix(home.LogsDir, home.Root) {
+			// Verify logs directory is under root using filepath.Rel
+			relLogs, err := filepath.Rel(home.Root, home.LogsDir)
+			if err != nil || strings.HasPrefix(relLogs, "..") || filepath.IsAbs(relLogs) {
 				t.Error("Logs directory is not under root directory")
 			}
 		})
