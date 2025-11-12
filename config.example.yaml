@@ -1,0 +1,54 @@
+# Example runtime configuration file for Portfolios API Server
+# Copy this file to ~/.portfolios/config.yaml and customize as needed
+# Environment variables take precedence over these values
+
+# Server configuration
+server:
+  port: "8080"
+  environment: "development"  # development, staging, production
+  cors_origins:
+    - "http://localhost:5173"
+    - "http://localhost:3000"
+
+# Database configuration
+database:
+  url: "postgresql://user:password@localhost:5432/portfolios"
+
+# JWT token configuration
+jwt:
+  secret: "your-secret-key-here"
+  access_token_duration: "30m"
+  refresh_token_duration: "168h"  # 7 days
+  remember_me_access_duration: "24h"
+  remember_me_refresh_duration: "720h"  # 30 days
+
+# SMTP configuration (for password reset emails)
+smtp:
+  host: "smtp.example.com"
+  port: 587
+  username: "your-smtp-username"
+  password: "your-smtp-password"
+  from: "noreply@example.com"
+
+# Security configuration
+security:
+  rate_limit_requests: 5
+  rate_limit_duration: "1m"
+
+# Market data provider configuration
+market_data:
+  provider: "alphavantage"
+  api_key: "your-alpha-vantage-api-key"
+
+# Runtime configuration
+runtime:
+  home_dir: ""  # Leave empty to use default ~/.portfolios
+
+# Logging configuration
+logging:
+  level: "info"           # debug, info, warn, error
+  format: "json"          # json, console
+  enable_console: true    # Enable console output
+  enable_file: true       # Enable file output
+  server_log: ""          # Leave empty to use default ~/.portfolios/logs/server.log
+  request_log: ""         # Leave empty to use default ~/.portfolios/logs/requests.log

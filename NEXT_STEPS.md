@@ -14,6 +14,7 @@ This document tracks the implementation roadmap for the portfolios backend appli
 - [x] Performance Analytics Service (TWR, MWR, annualized returns, benchmark comparison)
 - [x] Market Data Service (Alpha Vantage integration with caching)
 - [x] Performance Snapshot Service (daily performance tracking)
+- [x] Runtime Home Directory (configuration and logging infrastructure)
 - [x] Comprehensive Test Coverage
   - DTOs: 97.3% coverage (30+ tests for all conversion functions)
   - Middleware: 61.2% coverage (17 tests for auth, CORS, rate limiting)
@@ -258,12 +259,24 @@ A comprehensive CLI has been implemented with modern TUI features using Cobra, B
 ## 📝 Notes
 
 ### Current State
-- **Commit:** [Latest] - Implemented comprehensive CLI tool with modern TUI
-- **Branch:** `claude/next-steps-planning-011CV3T72URrErUz5HvYHZjz`
+- **Commit:** [Latest] - Implemented runtime home directory with YAML config and separate log files
+- **Branch:** `claude/runtime-home-directory-011CV3ZbH7U6YvrLGxsUnQbA`
 - **All tests passing:** ✅
-- **Test Coverage:** 55.3% overall (services: 78.7%, dto: 97.3%, logger: 88.1%, models: 97.0%, utils: 96.9%)
+- **Test Coverage:** ~56% overall (runtime package fully tested)
 
 ### Recent Changes (2025-11-12)
+- **Runtime Home Directory:** ✅ COMPLETED
+  - Created runtime home directory structure (`~/.portfolios`)
+  - YAML configuration file support (`~/.portfolios/config.yaml`)
+  - Separate log files for server and request logs
+  - Enhanced logger with multi-output support
+  - Environment variable overrides for all configuration
+  - Comprehensive documentation in `docs/RUNTIME_HOME_DIRECTORY.md`
+  - Example configuration file (`config.example.yaml`)
+  - Full test coverage for runtime package
+  - Updated main.go with proper initialization and logging
+
+**Previous Changes (2025-11-12):
 - **CLI Tool:** Completed full implementation
   - Comprehensive CLI using Cobra v1.10.1 framework
   - Beautiful TUI with Bubble Tea v1.3.10 and Lipgloss v1.1.0

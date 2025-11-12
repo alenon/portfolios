@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -14,23 +15,98 @@ import (
 	"github.com/lenon/portfolios/internal/database"
 	"github.com/lenon/portfolios/internal/handlers"
 	"github.com/lenon/portfolios/internal/jobs"
+	"github.com/lenon/portfolios/internal/logger"
 	"github.com/lenon/portfolios/internal/middleware"
 	"github.com/lenon/portfolios/internal/repository"
+	"github.com/lenon/portfolios/internal/runtime"
 	"github.com/lenon/portfolios/internal/services"
 )
 
 func main() {
-	// Load configuration
-	cfg, err := config.Load()
+	// Initialize runtime home directory
+	homeDir, err := runtime.InitHomeDir(os.Getenv("RUNTIME_HOME_DIR"))
+	if err != nil {
+		log.Fatalf("Failed to initialize home directory: %v", err)
+	}
+
+	// Ensure log files exist
+	if err := homeDir.EnsureLogFiles(); err != nil {
+		log.Fatalf("Failed to create log files: %v", err)
+	}
+
+	// Load configuration from YAML file (if exists) and environment variables
+	var cfg *config.Config
+	if homeDir.ConfigExists() {
+		cfg, err = config.LoadWithYAML(homeDir.ConfigPath)
+		log.Printf("Loaded configuration from %s", homeDir.ConfigPath)
+	} else {
+		cfg, err = config.Load()
+		log.Printf("Using environment variables for configuration (no config file found at %s)", homeDir.ConfigPath)
+	}
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
+	}
+
+	// Set home directory in config if not already set
+	if cfg.Runtime.HomeDir == "" {
+		cfg.Runtime.HomeDir = homeDir.Root
+	}
+
+	// Set log paths if not already set
+	if cfg.Logging.ServerLogPath == "" {
+		cfg.Logging.ServerLogPath = homeDir.ServerLog
+	}
+	if cfg.Logging.RequestLogPath == "" {
+		cfg.Logging.RequestLogPath = homeDir.RequestLog
+	}
+
+	// Enable file logging by default
+	if !cfg.Logging.EnableFile && !cfg.Logging.EnableConsole {
+		cfg.Logging.EnableFile = true
+		cfg.Logging.EnableConsole = true
+	}
+
+	// Initialize server logger
+	serverLogger, err := logger.NewFileLogger(
+		cfg.Logging.ServerLogPath,
+		cfg.Logging.Level,
+		cfg.Logging.Format,
+	)
+	if err != nil {
+		log.Fatalf("Failed to initialize server logger: %v", err)
+	}
+
+	// Initialize request logger
+	requestLogger, err := logger.NewFileLogger(
+		cfg.Logging.RequestLogPath,
+		cfg.Logging.Level,
+		cfg.Logging.Format,
+	)
+	if err != nil {
+		log.Fatalf("Failed to initialize request logger: %v", err)
+	}
+
+	serverLogger.Info().
+		Str("home_dir", homeDir.Root).
+		Str("config_path", homeDir.ConfigPath).
+		Str("server_log", cfg.Logging.ServerLogPath).
+		Str("request_log", cfg.Logging.RequestLogPath).
+		Msg("Server starting with runtime home directory")
+
+	// Log to console as well for visibility
+	fmt.Printf("Runtime home directory: %s\n", homeDir.Root)
+	fmt.Printf("Server log: %s\n", cfg.Logging.ServerLogPath)
+	fmt.Printf("Request log: %s\n", cfg.Logging.RequestLogPath)
+	if homeDir.ConfigExists() {
+		fmt.Printf("Configuration file: %s\n", homeDir.ConfigPath)
 	}
 
 	// Initialize database connection
 	db, err := database.Connect(cfg.Database.URL)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		serverLogger.Fatal().Err(err).Msg("Failed to connect to database")
 	}
+	serverLogger.Info().Msg("Connected to database")
 
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(db)
@@ -78,9 +154,9 @@ func main() {
 	if cfg.MarketData.APIKey != "" {
 		alphaVantageProvider := services.NewAlphaVantageProvider(cfg.MarketData.APIKey)
 		marketDataService = services.NewMarketDataService(alphaVantageProvider, 15*time.Minute)
-		log.Println("Market data service initialized with Alpha Vantage provider")
+		serverLogger.Info().Msg("Market data service initialized with Alpha Vantage provider")
 	} else {
-		log.Println("Warning: Market data service not initialized (no API key provided)")
+		serverLogger.Warn().Msg("Market data service not initialized (no API key provided)")
 	}
 
 	// Initialize performance snapshot service
@@ -99,9 +175,9 @@ func main() {
 			performanceSnapshotRepo,
 			marketDataService,
 		)
-		log.Println("Performance analytics service initialized")
+		serverLogger.Info().Msg("Performance analytics service initialized")
 	} else {
-		log.Println("Warning: Performance analytics service not initialized (requires market data)")
+		serverLogger.Warn().Msg("Performance analytics service not initialized (requires market data)")
 	}
 
 	// Initialize corporate action service
@@ -150,7 +226,7 @@ func main() {
 		cleanupJob := jobs.NewCleanupJob(marketDataService, 365)
 		scheduler.AddJob(cleanupJob)
 
-		log.Println("Market data background jobs initialized")
+		serverLogger.Info().Msg("Market data background jobs initialized")
 	}
 
 	// Initialize handlers
@@ -185,9 +261,11 @@ func main() {
 	importHandler := handlers.NewImportHandler(csvImportService)
 
 	// Set up Gin router
-	router := gin.Default()
+	router := gin.New()
 
 	// Apply global middleware
+	router.Use(middleware.LoggingMiddleware(requestLogger))
+	router.Use(middleware.RecoveryLoggingMiddleware(serverLogger))
 	router.Use(middleware.ErrorHandler())
 	router.Use(middleware.CORS(cfg.Server.CORSOrigins))
 
@@ -300,7 +378,7 @@ func main() {
 	}
 
 	// Start background job scheduler
-	log.Println("Starting background job scheduler...")
+	serverLogger.Info().Msg("Starting background job scheduler")
 	scheduler.Start()
 
 	// Create HTTP server with timeouts to prevent slowloris attacks
@@ -315,9 +393,13 @@ func main() {
 
 	// Start server in a goroutine
 	go func() {
-		log.Printf("Starting server on port %s", cfg.Server.Port)
+		serverLogger.Info().
+			Str("port", cfg.Server.Port).
+			Str("environment", cfg.Server.Environment).
+			Msg("Server starting")
+		fmt.Printf("Server listening on port %s\n", cfg.Server.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Failed to start server: %v", err)
+			serverLogger.Fatal().Err(err).Msg("Failed to start server")
 		}
 	}()
 
@@ -325,18 +407,21 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down server...")
+	serverLogger.Info().Msg("Shutdown signal received, shutting down server")
+	fmt.Println("\nShutting down server...")
 
 	// Stop background job scheduler
-	log.Println("Stopping background job scheduler...")
+	serverLogger.Info().Msg("Stopping background job scheduler")
 	scheduler.Stop()
 
 	// Graceful shutdown with 5 second timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		serverLogger.Error().Err(err).Msg("Server forced to shutdown")
+	} else {
+		serverLogger.Info().Msg("Server shutdown gracefully")
 	}
 
-	log.Println("Server exited")
+	fmt.Println("Server exited")
 }
