@@ -269,6 +269,14 @@ func main() {
 	router.Use(middleware.ErrorHandler())
 	router.Use(middleware.CORS(cfg.Server.CORSOrigins))
 
+	// Health check endpoint (no authentication required)
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "healthy",
+			"timestamp": time.Now().UTC().Format(time.RFC3339),
+		})
+	})
+
 	// Create rate limiter
 	rateLimiter := middleware.NewRateLimiter(cfg.Security.RateLimitRequests, cfg.Security.RateLimitDuration)
 

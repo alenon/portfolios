@@ -1,0 +1,40 @@
+# Build stage for CLI
+FROM golang:1.25-alpine AS builder
+
+WORKDIR /app
+
+# Install dependencies
+RUN apk --no-cache add git
+
+# Copy go mod files
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build the CLI application with version info
+ARG VERSION=dev
+ARG BUILD_DATE
+ARG GIT_COMMIT
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags "-X 'github.com/lenon/portfolios/cmd/portfolios/cmd.Version=${VERSION}' \
+              -X 'github.com/lenon/portfolios/cmd/portfolios/cmd.BuildDate=${BUILD_DATE}' \
+              -X 'github.com/lenon/portfolios/cmd/portfolios/cmd.GitCommit=${GIT_COMMIT}'" \
+    -o /app/bin/portfolios ./cmd/portfolios
+
+# Runtime stage
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates curl bash jq
+
+WORKDIR /root/
+
+# Copy the CLI binary from builder
+COPY --from=builder /app/bin/portfolios /usr/local/bin/portfolios
+
+# Make it executable
+RUN chmod +x /usr/local/bin/portfolios
+
+# Default command shows help
+CMD ["portfolios", "--help"]

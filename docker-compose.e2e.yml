@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  postgres-e2e:
+    image: postgres:15-alpine
+    container_name: portfolios-db-e2e
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: portfolios_e2e
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts
+    volumes:
+      - postgres_data_e2e:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - e2e-network
+
+  backend-e2e:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portfolios-backend-e2e
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres-e2e:5432/portfolios_e2e?sslmode=disable
+      JWT_SECRET: e2e-test-secret-key-do-not-use-in-production
+      JWT_ACCESS_TOKEN_DURATION: 30m
+      JWT_REFRESH_TOKEN_DURATION: 168h
+      JWT_REMEMBER_ME_ACCESS_DURATION: 24h
+      JWT_REMEMBER_ME_REFRESH_DURATION: 720h
+      SERVER_PORT: 8080
+      ENVIRONMENT: e2e-testing
+      CORS_ALLOWED_ORIGINS: "*"
+      RATE_LIMIT_REQUESTS: 100
+      RATE_LIMIT_DURATION: 1m
+      LOG_LEVEL: debug
+    ports:
+      - "8081:8080"  # Different port to avoid conflicts
+    depends_on:
+      postgres-e2e:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/root/migrations
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - e2e-network
+
+  cli-e2e:
+    build:
+      context: .
+      dockerfile: Dockerfile.cli
+      args:
+        VERSION: e2e-test
+        BUILD_DATE: ${BUILD_DATE:-2024-01-01T00:00:00Z}
+        GIT_COMMIT: ${GIT_COMMIT:-e2e}
+    container_name: portfolios-cli-e2e
+    environment:
+      PORTFOLIOS_API_URL: http://backend-e2e:8080
+      PORTFOLIOS_CONFIG_DIR: /tmp/portfolios-e2e
+    depends_on:
+      backend-e2e:
+        condition: service_healthy
+    volumes:
+      - ./tests/e2e:/tests
+      - ./tests/e2e/fixtures:/fixtures
+      - cli_config_e2e:/tmp/portfolios-e2e
+    networks:
+      - e2e-network
+    command: ["tail", "-f", "/dev/null"]  # Keep container running for tests
+
+volumes:
+  postgres_data_e2e:
+  cli_config_e2e:
+
+networks:
+  e2e-network:
+    driver: bridge
