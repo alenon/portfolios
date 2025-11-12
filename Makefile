@@ -80,22 +80,22 @@ e2e-test: ## Run e2e tests in Docker
 
 e2e-up: ## Start e2e test environment
 	@echo "Starting E2E test environment..."
-	docker-compose -f docker-compose.e2e.yml up -d
+	docker compose -f docker-compose.e2e.yml up -d
 	@echo "Waiting for services to be healthy..."
 	@sleep 10
 	@echo "E2E environment ready!"
 
 e2e-down: ## Stop e2e test environment
 	@echo "Stopping E2E test environment..."
-	docker-compose -f docker-compose.e2e.yml down -v
+	docker compose -f docker-compose.e2e.yml down -v
 
 e2e-logs: ## View e2e test environment logs
-	docker-compose -f docker-compose.e2e.yml logs -f
+	docker compose -f docker-compose.e2e.yml logs -f
 
 e2e-clean: ## Clean e2e test environment
 	@echo "Cleaning E2E test environment..."
-	docker-compose -f docker-compose.e2e.yml down -v --remove-orphans
+	docker compose -f docker-compose.e2e.yml down -v --remove-orphans
 	@echo "E2E environment cleaned!"
 
 e2e-shell: ## Open shell in CLI container for debugging
-	docker-compose -f docker-compose.e2e.yml exec cli-e2e sh
+	docker compose -f docker-compose.e2e.yml exec cli-e2e sh

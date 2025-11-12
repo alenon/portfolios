@@ -94,18 +94,18 @@ jobs:
 
       - name: Start E2E test environment
         run: |
-          docker-compose -f docker-compose.e2e.yml up -d
+          docker compose -f docker-compose.e2e.yml up -d
           echo "Waiting for services to be healthy..."
 
           # Wait for backend to be healthy (max 120 seconds)
           for i in {1..24}; do
-            if docker-compose -f docker-compose.e2e.yml ps backend-e2e | grep -q "healthy"; then
+            if docker compose -f docker-compose.e2e.yml ps backend-e2e | grep -q "healthy"; then
               echo "Backend is healthy!"
               break
             fi
             if [ $i -eq 24 ]; then
               echo "Backend did not become healthy in time"
-              docker-compose -f docker-compose.e2e.yml logs backend-e2e
+              docker compose -f docker-compose.e2e.yml logs backend-e2e
               exit 1
             fi
             echo "Waiting for backend... ($i/24)"
@@ -117,7 +117,7 @@ jobs:
 
       - name: Run E2E tests
         run: |
-          docker-compose -f docker-compose.e2e.yml exec -T cli-e2e \
+          docker compose -f docker-compose.e2e.yml exec -T cli-e2e \
             sh -c "cd /tests && go test -v -timeout 15m ./..."
         env:
           TEST_TIMEOUT: 15m
@@ -126,18 +126,18 @@ jobs:
         if: failure()
         run: |
           echo "=== Backend Logs ==="
-          docker-compose -f docker-compose.e2e.yml logs backend-e2e
+          docker compose -f docker-compose.e2e.yml logs backend-e2e
           echo ""
           echo "=== PostgreSQL Logs ==="
-          docker-compose -f docker-compose.e2e.yml logs postgres-e2e
+          docker compose -f docker-compose.e2e.yml logs postgres-e2e
           echo ""
           echo "=== CLI Container Logs ==="
-          docker-compose -f docker-compose.e2e.yml logs cli-e2e
+          docker compose -f docker-compose.e2e.yml logs cli-e2e
 
       - name: Cleanup
         if: always()
         run: |
-          docker-compose -f docker-compose.e2e.yml down -v --remove-orphans
+          docker compose -f docker-compose.e2e.yml down -v --remove-orphans
 
   # Summary job that depends on e2e-tests
   e2e-complete:

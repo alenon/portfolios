@@ -20,7 +20,7 @@ echo ""
 cleanup() {
     if [ "$CLEANUP" = "true" ]; then
         echo -e "${YELLOW}Cleaning up Docker containers...${NC}"
-        docker-compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" down -v --remove-orphans
+        docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" down -v --remove-orphans
         echo -e "${GREEN}Cleanup complete${NC}"
     else
         echo -e "${YELLOW}Skipping cleanup (CLEANUP=false)${NC}"
@@ -30,19 +30,20 @@ cleanup() {
 # Trap cleanup on exit
 trap cleanup EXIT
 
-# Check if docker-compose is available
-if ! command -v docker-compose &> /dev/null; then
-    echo -e "${RED}Error: docker-compose is not installed${NC}"
+# Check if docker compose is available
+if ! docker compose version &> /dev/null; then
+    echo -e "${RED}Error: 'docker compose' is not available${NC}"
+    echo -e "${YELLOW}Please ensure Docker Compose V2 is installed${NC}"
     exit 1
 fi
 
 # Step 1: Build images
 echo -e "${GREEN}Step 1: Building Docker images...${NC}"
-docker-compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" build --no-cache
+docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" build --no-cache
 
 # Step 2: Start services
 echo -e "${GREEN}Step 2: Starting services...${NC}"
-docker-compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" up -d
+docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" up -d
 
 # Step 3: Wait for services to be healthy
 echo -e "${GREEN}Step 3: Waiting for services to be healthy...${NC}"
@@ -52,7 +53,7 @@ INTERVAL=5
 
 while [ $ELAPSED -lt $MAX_WAIT ]; do
     # Check if backend is healthy
-    BACKEND_HEALTH=$(docker-compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" ps backend-e2e --format json 2>/dev/null | grep -o '"Health":"[^"]*"' | cut -d'"' -f4 || echo "starting")
+    BACKEND_HEALTH=$(docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" ps backend-e2e --format json 2>/dev/null | grep -o '"Health":"[^"]*"' | cut -d'"' -f4 || echo "starting")
 
     if [ "$BACKEND_HEALTH" = "healthy" ]; then
         echo -e "${GREEN}Backend is healthy!${NC}"
@@ -67,7 +68,7 @@ done
 if [ $ELAPSED -ge $MAX_WAIT ]; then
     echo -e "${RED}Error: Services did not become healthy in time${NC}"
     echo -e "${YELLOW}Showing logs:${NC}"
-    docker-compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" logs backend-e2e
+    docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" logs backend-e2e
     exit 1
 fi
 
@@ -80,7 +81,7 @@ echo ""
 
 # Run the tests with proper Go test flags
 TEST_EXIT_CODE=0
-docker-compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T cli-e2e \
+docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T cli-e2e \
     sh -c "cd /tests && go test -v -timeout $TEST_TIMEOUT ./..." || TEST_EXIT_CODE=$?
 
 echo ""
@@ -91,13 +92,13 @@ if [ $TEST_EXIT_CODE -eq 0 ]; then
 else
     echo -e "${RED}=== E2E Tests FAILED ===${NC}"
     echo -e "${YELLOW}Showing backend logs:${NC}"
-    docker-compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" logs backend-e2e | tail -50
+    docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" logs backend-e2e | tail -50
 fi
 
 # Step 6: Optionally show logs
 if [ "${SHOW_LOGS}" = "true" ]; then
     echo -e "${YELLOW}=== Service Logs ===${NC}"
-    docker-compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" logs
+    docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" logs
 fi
 
 exit $TEST_EXIT_CODE
