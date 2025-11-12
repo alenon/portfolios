@@ -92,18 +92,18 @@ func runPerformanceShow(cmd *cobra.Command, args []string) error {
 	}
 
 	var metrics struct {
-		TimeWeightedReturn    float64 `json:"time_weighted_return"`
-		MoneyWeightedReturn   float64 `json:"money_weighted_return"`
-		AnnualizedReturn      float64 `json:"annualized_return"`
-		TotalReturn           float64 `json:"total_return"`
-		TotalGain             float64 `json:"total_gain"`
-		DividendIncome        float64 `json:"dividend_income"`
-		RealizedGain          float64 `json:"realized_gain"`
-		UnrealizedGain        float64 `json:"unrealized_gain"`
-		BeginningValue        float64 `json:"beginning_value"`
-		EndingValue           float64 `json:"ending_value"`
-		NetContributions      float64 `json:"net_contributions"`
-		Period                string  `json:"period"`
+		TimeWeightedReturn  float64 `json:"time_weighted_return"`
+		MoneyWeightedReturn float64 `json:"money_weighted_return"`
+		AnnualizedReturn    float64 `json:"annualized_return"`
+		TotalReturn         float64 `json:"total_return"`
+		TotalGain           float64 `json:"total_gain"`
+		DividendIncome      float64 `json:"dividend_income"`
+		RealizedGain        float64 `json:"realized_gain"`
+		UnrealizedGain      float64 `json:"unrealized_gain"`
+		BeginningValue      float64 `json:"beginning_value"`
+		EndingValue         float64 `json:"ending_value"`
+		NetContributions    float64 `json:"net_contributions"`
+		Period              string  `json:"period"`
 	}
 
 	if err := client.Request("GET", path, nil, &metrics); err != nil {
@@ -169,14 +169,14 @@ func runPerformanceCompare(cmd *cobra.Command, args []string) error {
 
 	var comparison struct {
 		Portfolios []struct {
-			ID                 uint    `json:"id"`
-			Name               string  `json:"name"`
-			TimeWeightedReturn float64 `json:"time_weighted_return"`
+			ID                  uint    `json:"id"`
+			Name                string  `json:"name"`
+			TimeWeightedReturn  float64 `json:"time_weighted_return"`
 			MoneyWeightedReturn float64 `json:"money_weighted_return"`
-			AnnualizedReturn   float64 `json:"annualized_return"`
-			TotalReturn        float64 `json:"total_return"`
-			TotalGain          float64 `json:"total_gain"`
-			EndingValue        float64 `json:"ending_value"`
+			AnnualizedReturn    float64 `json:"annualized_return"`
+			TotalReturn         float64 `json:"total_return"`
+			TotalGain           float64 `json:"total_gain"`
+			EndingValue         float64 `json:"ending_value"`
 		} `json:"portfolios"`
 	}
 
@@ -239,9 +239,9 @@ func runPerformanceBenchmark(cmd *cobra.Command, args []string) error {
 
 	var comparison struct {
 		Portfolio struct {
-			TimeWeightedReturn  float64 `json:"time_weighted_return"`
-			AnnualizedReturn    float64 `json:"annualized_return"`
-			TotalReturn         float64 `json:"total_return"`
+			TimeWeightedReturn float64 `json:"time_weighted_return"`
+			AnnualizedReturn   float64 `json:"annualized_return"`
+			TotalReturn        float64 `json:"total_return"`
 		} `json:"portfolio"`
 		Benchmark struct {
 			Symbol             string  `json:"symbol"`
@@ -324,12 +324,12 @@ func runPerformanceSnapshots(cmd *cobra.Command, args []string) error {
 	}
 
 	var snapshots []struct {
-		ID            uint    `json:"id"`
-		SnapshotDate  string  `json:"snapshot_date"`
-		TotalValue    float64 `json:"total_value"`
-		TotalGain     float64 `json:"total_gain"`
-		TotalReturn   float64 `json:"total_return"`
-		DayChange     float64 `json:"day_change"`
+		ID               uint    `json:"id"`
+		SnapshotDate     string  `json:"snapshot_date"`
+		TotalValue       float64 `json:"total_value"`
+		TotalGain        float64 `json:"total_gain"`
+		TotalReturn      float64 `json:"total_return"`
+		DayChange        float64 `json:"day_change"`
 		DayChangePercent float64 `json:"day_change_percent"`
 	}
 

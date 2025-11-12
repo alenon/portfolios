@@ -266,12 +266,12 @@ func runTransactionImport(cmd *cobra.Command, args []string) error {
 	}
 
 	var importResp struct {
-		Success          int      `json:"success"`
-		Failed           int      `json:"failed"`
-		Total            int      `json:"total"`
-		Errors           []string `json:"errors"`
-		ImportBatchID    string   `json:"import_batch_id"`
-		DryRun           bool     `json:"dry_run"`
+		Success       int      `json:"success"`
+		Failed        int      `json:"failed"`
+		Total         int      `json:"total"`
+		Errors        []string `json:"errors"`
+		ImportBatchID string   `json:"import_batch_id"`
+		DryRun        bool     `json:"dry_run"`
 	}
 
 	if err := client.UploadFile(

@@ -246,13 +246,13 @@ func runPortfolioHoldings(cmd *cobra.Command, args []string) error {
 	client := cli.NewClientFromConfig(config)
 
 	var holdings []struct {
-		ID              uint    `json:"id"`
-		Symbol          string  `json:"symbol"`
-		Quantity        float64 `json:"quantity"`
-		AverageCost     float64 `json:"average_cost"`
-		TotalCost       float64 `json:"total_cost"`
-		CurrentValue    float64 `json:"current_value"`
-		UnrealizedGain  float64 `json:"unrealized_gain"`
+		ID                    uint    `json:"id"`
+		Symbol                string  `json:"symbol"`
+		Quantity              float64 `json:"quantity"`
+		AverageCost           float64 `json:"average_cost"`
+		TotalCost             float64 `json:"total_cost"`
+		CurrentValue          float64 `json:"current_value"`
+		UnrealizedGain        float64 `json:"unrealized_gain"`
 		UnrealizedGainPercent float64 `json:"unrealized_gain_percent"`
 	}
 
