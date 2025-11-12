@@ -10,7 +10,6 @@ import (
 var (
 	startDate string
 	endDate   string
-	benchmark string
 )
 
 var performanceCmd = &cobra.Command{

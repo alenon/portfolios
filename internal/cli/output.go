@@ -138,7 +138,10 @@ func Confirm(message string) bool {
 	fmt.Print(style.Render(message + " (y/N): "))
 
 	var response string
-	fmt.Scanln(&response)
+	if _, err := fmt.Scanln(&response); err != nil {
+		// If there's an error (e.g., EOF), treat as "no"
+		return false
+	}
 
 	response = strings.TrimSpace(strings.ToLower(response))
 	return response == "y" || response == "yes"

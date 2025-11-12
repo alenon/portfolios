@@ -63,7 +63,9 @@ func (c *Client) Request(method, path string, body interface{}, result interface
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	// Handle authentication errors
 	if resp.StatusCode == http.StatusUnauthorized {
@@ -123,7 +125,9 @@ func (c *Client) UploadFile(path, fieldName, filename string, fileData []byte, a
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return fmt.Errorf("authentication failed: please login again")
