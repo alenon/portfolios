@@ -71,12 +71,12 @@ type RuntimeConfig struct {
 
 // LoggingConfig holds logging configuration
 type LoggingConfig struct {
-	Level          string `yaml:"level"`           // debug, info, warn, error
-	Format         string `yaml:"format"`          // json, console
-	ServerLogPath  string `yaml:"server_log"`      // Path to server log file
-	RequestLogPath string `yaml:"request_log"`     // Path to request log file
-	EnableConsole  bool   `yaml:"enable_console"`  // Enable console output
-	EnableFile     bool   `yaml:"enable_file"`     // Enable file output
+	Level          string `yaml:"level"`          // debug, info, warn, error
+	Format         string `yaml:"format"`         // json, console
+	ServerLogPath  string `yaml:"server_log"`     // Path to server log file
+	RequestLogPath string `yaml:"request_log"`    // Path to request log file
+	EnableConsole  bool   `yaml:"enable_console"` // Enable console output
+	EnableFile     bool   `yaml:"enable_file"`    // Enable file output
 }
 
 // Load reads configuration from environment variables
