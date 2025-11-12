@@ -190,17 +190,17 @@ func (p *FidelityParser) Parse(data io.Reader) ([]dto.ImportTransactionRequest, 
 func (p *FidelityParser) parseFidelityAction(action string) (models.TransactionType, error) {
 	// Fidelity-specific action mapping
 	actionMap := map[string]models.TransactionType{
-		"YOU BOUGHT":              models.TransactionTypeBuy,
-		"YOU SOLD":                models.TransactionTypeSell,
-		"DIVIDEND RECEIVED":       models.TransactionTypeDividend,
-		"CASH DIVIDEND":           models.TransactionTypeDividend,
-		"REINVESTMENT":            models.TransactionTypeDividendReinvest,
-		"DIVIDEND REINVESTMENT":   models.TransactionTypeDividendReinvest,
-		"STOCK SPLIT":             models.TransactionTypeSplit,
-		"EXCHANGE OR EXERCISE":    models.TransactionTypeMerger,
-		"MERGER":                  models.TransactionTypeMerger,
-		"SPINOFF":                 models.TransactionTypeSpinoff,
-		"SYMBOL CHANGE":           models.TransactionTypeTickerChange,
+		"YOU BOUGHT":            models.TransactionTypeBuy,
+		"YOU SOLD":              models.TransactionTypeSell,
+		"DIVIDEND RECEIVED":     models.TransactionTypeDividend,
+		"CASH DIVIDEND":         models.TransactionTypeDividend,
+		"REINVESTMENT":          models.TransactionTypeDividendReinvest,
+		"DIVIDEND REINVESTMENT": models.TransactionTypeDividendReinvest,
+		"STOCK SPLIT":           models.TransactionTypeSplit,
+		"EXCHANGE OR EXERCISE":  models.TransactionTypeMerger,
+		"MERGER":                models.TransactionTypeMerger,
+		"SPINOFF":               models.TransactionTypeSpinoff,
+		"SYMBOL CHANGE":         models.TransactionTypeTickerChange,
 	}
 
 	// Try exact match first

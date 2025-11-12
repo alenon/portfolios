@@ -52,17 +52,17 @@ func (p *BaseParser) ParseDate(dateStr string) (time.Time, error) {
 
 	// Common date formats used by brokers
 	formats := []string{
-		"2006-01-02",                    // ISO 8601 (YYYY-MM-DD)
-		"01/02/2006",                    // US format (MM/DD/YYYY)
-		"01/02/06",                      // US short (MM/DD/YY)
-		"02/01/2006",                    // UK format (DD/MM/YYYY)
-		"2006-01-02 15:04:05",           // ISO with time
-		"01/02/2006 15:04:05",           // US with time
-		"01/02/2006 3:04:05 PM",         // US with 12-hour time
-		"January 2, 2006",               // Long format
-		"Jan 2, 2006",                   // Short month format
-		"2006/01/02",                    // ISO with slashes
-		time.RFC3339,                    // RFC3339
+		"2006-01-02",            // ISO 8601 (YYYY-MM-DD)
+		"01/02/2006",            // US format (MM/DD/YYYY)
+		"01/02/06",              // US short (MM/DD/YY)
+		"02/01/2006",            // UK format (DD/MM/YYYY)
+		"2006-01-02 15:04:05",   // ISO with time
+		"01/02/2006 15:04:05",   // US with time
+		"01/02/2006 3:04:05 PM", // US with 12-hour time
+		"January 2, 2006",       // Long format
+		"Jan 2, 2006",           // Short month format
+		"2006/01/02",            // ISO with slashes
+		time.RFC3339,            // RFC3339
 	}
 
 	for _, format := range formats {
@@ -109,25 +109,25 @@ func (p *BaseParser) ParseTransactionType(typeStr string) (models.TransactionTyp
 
 	// Map common variations to our transaction types
 	typeMap := map[string]models.TransactionType{
-		"BUY":                models.TransactionTypeBuy,
-		"BOUGHT":             models.TransactionTypeBuy,
-		"PURCHASE":           models.TransactionTypeBuy,
-		"SELL":               models.TransactionTypeSell,
-		"SOLD":               models.TransactionTypeSell,
-		"SALE":               models.TransactionTypeSell,
-		"DIVIDEND":           models.TransactionTypeDividend,
-		"DIV":                models.TransactionTypeDividend,
-		"CASH DIVIDEND":      models.TransactionTypeDividend,
-		"SPLIT":              models.TransactionTypeSplit,
-		"STOCK SPLIT":        models.TransactionTypeSplit,
-		"MERGER":             models.TransactionTypeMerger,
-		"SPINOFF":            models.TransactionTypeSpinoff,
-		"SPIN-OFF":           models.TransactionTypeSpinoff,
-		"DIVIDEND REINVEST":  models.TransactionTypeDividendReinvest,
-		"DRIP":               models.TransactionTypeDividendReinvest,
-		"REINVEST":           models.TransactionTypeDividendReinvest,
-		"TICKER CHANGE":      models.TransactionTypeTickerChange,
-		"SYMBOL CHANGE":      models.TransactionTypeTickerChange,
+		"BUY":               models.TransactionTypeBuy,
+		"BOUGHT":            models.TransactionTypeBuy,
+		"PURCHASE":          models.TransactionTypeBuy,
+		"SELL":              models.TransactionTypeSell,
+		"SOLD":              models.TransactionTypeSell,
+		"SALE":              models.TransactionTypeSell,
+		"DIVIDEND":          models.TransactionTypeDividend,
+		"DIV":               models.TransactionTypeDividend,
+		"CASH DIVIDEND":     models.TransactionTypeDividend,
+		"SPLIT":             models.TransactionTypeSplit,
+		"STOCK SPLIT":       models.TransactionTypeSplit,
+		"MERGER":            models.TransactionTypeMerger,
+		"SPINOFF":           models.TransactionTypeSpinoff,
+		"SPIN-OFF":          models.TransactionTypeSpinoff,
+		"DIVIDEND REINVEST": models.TransactionTypeDividendReinvest,
+		"DRIP":              models.TransactionTypeDividendReinvest,
+		"REINVEST":          models.TransactionTypeDividendReinvest,
+		"TICKER CHANGE":     models.TransactionTypeTickerChange,
+		"SYMBOL CHANGE":     models.TransactionTypeTickerChange,
 	}
 
 	if txType, ok := typeMap[typeStr]; ok {
@@ -141,8 +141,8 @@ func (p *BaseParser) ParseTransactionType(typeStr string) (models.TransactionTyp
 func (p *BaseParser) NormalizeSymbol(symbol string) string {
 	symbol = strings.ToUpper(strings.TrimSpace(symbol))
 	// Remove common suffixes that might be in broker exports
-	symbol = strings.TrimSuffix(symbol, ".O")  // NASDAQ suffix
-	symbol = strings.TrimSuffix(symbol, ".N")  // NYSE suffix
+	symbol = strings.TrimSuffix(symbol, ".O") // NASDAQ suffix
+	symbol = strings.TrimSuffix(symbol, ".N") // NYSE suffix
 	return symbol
 }
 
@@ -217,7 +217,7 @@ func (p *BaseParser) ValidateTransaction(tx *dto.ImportTransactionRequest, lineN
 	}
 
 	// Price is required for BUY and SELL transactions
-	if (tx.Type == models.TransactionTypeBuy || tx.Type == models.TransactionTypeSell) {
+	if tx.Type == models.TransactionTypeBuy || tx.Type == models.TransactionTypeSell {
 		if tx.Price == nil || tx.Price.IsZero() {
 			errors = append(errors, dto.ImportError{
 				Line:    lineNum,

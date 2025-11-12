@@ -220,11 +220,11 @@ func TestBaseParser_ParseCSV(t *testing.T) {
 	parser := &BaseParser{}
 
 	tests := []struct {
-		name      string
-		csvData   string
-		wantRows  int
-		wantErr   bool
-		errMsg    string
+		name     string
+		csvData  string
+		wantRows int
+		wantErr  bool
+		errMsg   string
 	}{
 		{
 			name: "valid CSV",

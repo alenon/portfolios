@@ -164,14 +164,14 @@ func (p *RobinhoodParser) Parse(data io.Reader) ([]dto.ImportTransactionRequest,
 func (p *RobinhoodParser) parseRobinhoodTransCode(transCode, description string) (models.TransactionType, error) {
 	// Robinhood-specific trans code mapping
 	codeMap := map[string]models.TransactionType{
-		"BUY":       models.TransactionTypeBuy,
-		"SELL":      models.TransactionTypeSell,
-		"DIV":       models.TransactionTypeDividend,
-		"DIVIDEND":  models.TransactionTypeDividend,
-		"CDIV":      models.TransactionTypeDividend,
-		"SPLIT":     models.TransactionTypeSplit,
-		"SPINOFF":   models.TransactionTypeSpinoff,
-		"MERGER":    models.TransactionTypeMerger,
+		"BUY":      models.TransactionTypeBuy,
+		"SELL":     models.TransactionTypeSell,
+		"DIV":      models.TransactionTypeDividend,
+		"DIVIDEND": models.TransactionTypeDividend,
+		"CDIV":     models.TransactionTypeDividend,
+		"SPLIT":    models.TransactionTypeSplit,
+		"SPINOFF":  models.TransactionTypeSpinoff,
+		"MERGER":   models.TransactionTypeMerger,
 	}
 
 	// Try exact match on trans code first

@@ -175,17 +175,17 @@ func (p *SchwabParser) Parse(data io.Reader) ([]dto.ImportTransactionRequest, []
 func (p *SchwabParser) parseSchwabAction(action string) (models.TransactionType, error) {
 	// Schwab-specific action mapping
 	actionMap := map[string]models.TransactionType{
-		"BUY":                     models.TransactionTypeBuy,
-		"SELL":                    models.TransactionTypeSell,
-		"DIV":                     models.TransactionTypeDividend,
-		"CASH DIVIDEND":           models.TransactionTypeDividend,
-		"REINVEST DIVIDEND":       models.TransactionTypeDividendReinvest,
-		"REINVEST SHARES":         models.TransactionTypeDividendReinvest,
-		"STOCK SPLIT":             models.TransactionTypeSplit,
-		"MERGER":                  models.TransactionTypeMerger,
-		"SPINOFF":                 models.TransactionTypeSpinoff,
-		"SYMBOL CHANGE":           models.TransactionTypeTickerChange,
-		"NAME CHANGE":             models.TransactionTypeTickerChange,
+		"BUY":               models.TransactionTypeBuy,
+		"SELL":              models.TransactionTypeSell,
+		"DIV":               models.TransactionTypeDividend,
+		"CASH DIVIDEND":     models.TransactionTypeDividend,
+		"REINVEST DIVIDEND": models.TransactionTypeDividendReinvest,
+		"REINVEST SHARES":   models.TransactionTypeDividendReinvest,
+		"STOCK SPLIT":       models.TransactionTypeSplit,
+		"MERGER":            models.TransactionTypeMerger,
+		"SPINOFF":           models.TransactionTypeSpinoff,
+		"SYMBOL CHANGE":     models.TransactionTypeTickerChange,
+		"NAME CHANGE":       models.TransactionTypeTickerChange,
 	}
 
 	// Try exact match first

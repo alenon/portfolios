@@ -47,13 +47,13 @@ func NewCSVImportService(
 ) CSVImportService {
 	// Initialize all parsers
 	parsers := map[dto.ImportFormat]csv_parsers.CSVParser{
-		dto.ImportFormatGeneric:           csv_parsers.NewGenericParser(),
-		dto.ImportFormatFidelity:          csv_parsers.NewFidelityParser(),
-		dto.ImportFormatSchwab:            csv_parsers.NewSchwabParser(),
-		dto.ImportFormatTDAmeritrade:      csv_parsers.NewTDAmeritradeParser(),
-		dto.ImportFormatETrade:            csv_parsers.NewETradeParser(),
+		dto.ImportFormatGeneric:            csv_parsers.NewGenericParser(),
+		dto.ImportFormatFidelity:           csv_parsers.NewFidelityParser(),
+		dto.ImportFormatSchwab:             csv_parsers.NewSchwabParser(),
+		dto.ImportFormatTDAmeritrade:       csv_parsers.NewTDAmeritradeParser(),
+		dto.ImportFormatETrade:             csv_parsers.NewETradeParser(),
 		dto.ImportFormatInteractiveBrokers: csv_parsers.NewInteractiveBrokersParser(),
-		dto.ImportFormatRobinhood:         csv_parsers.NewRobinhoodParser(),
+		dto.ImportFormatRobinhood:          csv_parsers.NewRobinhoodParser(),
 	}
 
 	return &csvImportService{
@@ -140,15 +140,15 @@ func (s *csvImportService) ImportBulk(portfolioID, userID string, req dto.BulkIm
 
 	// Initialize result
 	result := &dto.ImportResult{
-		Success:          true,
-		BatchID:          batchID,
-		TotalRows:        len(req.Transactions),
-		SuccessCount:     0,
-		ErrorCount:       0,
-		SkippedCount:     0,
-		Errors:           []dto.ImportError{},
-		Transactions:     []*dto.TransactionResponse{},
-		ValidationOnly:   req.DryRun,
+		Success:           true,
+		BatchID:           batchID,
+		TotalRows:         len(req.Transactions),
+		SuccessCount:      0,
+		ErrorCount:        0,
+		SkippedCount:      0,
+		Errors:            []dto.ImportError{},
+		Transactions:      []*dto.TransactionResponse{},
+		ValidationOnly:    req.DryRun,
 		ValidationResults: []dto.ImportValidationResult{},
 	}
 
@@ -373,7 +373,7 @@ func (s *csvImportService) validateImportTransaction(tx *dto.ImportTransactionRe
 	}
 
 	// Price is required for BUY and SELL transactions
-	if (tx.Type == models.TransactionTypeBuy || tx.Type == models.TransactionTypeSell) {
+	if tx.Type == models.TransactionTypeBuy || tx.Type == models.TransactionTypeSell {
 		if tx.Price == nil || tx.Price.IsZero() || tx.Price.IsNegative() {
 			return fmt.Errorf("price is required and must be greater than zero for buy/sell transactions")
 		}

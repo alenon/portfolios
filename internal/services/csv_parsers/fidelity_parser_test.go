@@ -91,11 +91,11 @@ func TestFidelityParser_Parse_Success(t *testing.T) {
 
 func TestFidelityParser_Parse_FidelityActions(t *testing.T) {
 	tests := []struct {
-		name           string
-		action         string
-		expectedType   string
-		quantity       string
-		expectedQty    decimal.Decimal
+		name         string
+		action       string
+		expectedType string
+		quantity     string
+		expectedQty  decimal.Decimal
 	}{
 		{
 			name:         "YOU BOUGHT",

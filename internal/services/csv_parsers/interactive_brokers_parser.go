@@ -189,8 +189,8 @@ func (p *InteractiveBrokersParser) Parse(data io.Reader) ([]dto.ImportTransactio
 func (p *InteractiveBrokersParser) parseIBCode(code, description string) (models.TransactionType, error) {
 	// Interactive Brokers-specific code mapping
 	codeMap := map[string]models.TransactionType{
-		"O":   models.TransactionTypeBuy,   // Open position (buy)
-		"C":   models.TransactionTypeSell,  // Close position (sell)
+		"O":   models.TransactionTypeBuy,  // Open position (buy)
+		"C":   models.TransactionTypeSell, // Close position (sell)
 		"DIV": models.TransactionTypeDividend,
 		"PL":  models.TransactionTypeSplit, // Stock split
 		"TC":  models.TransactionTypeTickerChange,

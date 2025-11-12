@@ -176,16 +176,16 @@ func (p *ETradeParser) Parse(data io.Reader) ([]dto.ImportTransactionRequest, []
 func (p *ETradeParser) parseETradeType(txType string) (models.TransactionType, error) {
 	// E*TRADE-specific type mapping
 	typeMap := map[string]models.TransactionType{
-		"BOUGHT":                  models.TransactionTypeBuy,
-		"SOLD":                    models.TransactionTypeSell,
-		"DIVIDEND":                models.TransactionTypeDividend,
-		"CASH DIVIDEND":           models.TransactionTypeDividend,
-		"DIVIDEND REINVESTED":     models.TransactionTypeDividendReinvest,
-		"REINVEST DIVIDEND":       models.TransactionTypeDividendReinvest,
-		"STOCK SPLIT":             models.TransactionTypeSplit,
-		"MERGER":                  models.TransactionTypeMerger,
-		"SPINOFF":                 models.TransactionTypeSpinoff,
-		"SYMBOL CHANGE":           models.TransactionTypeTickerChange,
+		"BOUGHT":              models.TransactionTypeBuy,
+		"SOLD":                models.TransactionTypeSell,
+		"DIVIDEND":            models.TransactionTypeDividend,
+		"CASH DIVIDEND":       models.TransactionTypeDividend,
+		"DIVIDEND REINVESTED": models.TransactionTypeDividendReinvest,
+		"REINVEST DIVIDEND":   models.TransactionTypeDividendReinvest,
+		"STOCK SPLIT":         models.TransactionTypeSplit,
+		"MERGER":              models.TransactionTypeMerger,
+		"SPINOFF":             models.TransactionTypeSpinoff,
+		"SYMBOL CHANGE":       models.TransactionTypeTickerChange,
 	}
 
 	// Try exact match first
