@@ -1,4 +1,4 @@
-.PHONY: help install migrate-up migrate-down migrate-create build build-cli run test docker-up docker-down docker-dev install-cli
+.PHONY: help install migrate-up migrate-down migrate-create build build-cli run test docker-up docker-down docker-dev install-cli e2e-test e2e-up e2e-down e2e-logs e2e-clean
 
 # CLI build variables
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
@@ -72,3 +72,30 @@ lint: ## Run linters
 
 format: ## Format code
 	go fmt ./...
+
+# E2E Test targets
+e2e-test: ## Run e2e tests in Docker
+	@echo "Running E2E tests..."
+	./scripts/run-e2e-tests.sh
+
+e2e-up: ## Start e2e test environment
+	@echo "Starting E2E test environment..."
+	docker compose -f docker-compose.e2e.yml up -d
+	@echo "Waiting for services to be healthy..."
+	@sleep 10
+	@echo "E2E environment ready!"
+
+e2e-down: ## Stop e2e test environment
+	@echo "Stopping E2E test environment..."
+	docker compose -f docker-compose.e2e.yml down -v
+
+e2e-logs: ## View e2e test environment logs
+	docker compose -f docker-compose.e2e.yml logs -f
+
+e2e-clean: ## Clean e2e test environment
+	@echo "Cleaning E2E test environment..."
+	docker compose -f docker-compose.e2e.yml down -v --remove-orphans
+	@echo "E2E environment cleaned!"
+
+e2e-shell: ## Open shell in CLI container for debugging
+	docker compose -f docker-compose.e2e.yml exec cli-e2e sh
