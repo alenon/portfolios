@@ -36,6 +36,7 @@ services:
       RATE_LIMIT_REQUESTS: 100
       RATE_LIMIT_DURATION: 1m
       LOG_LEVEL: debug
+      RUNTIME_HOME_DIR: /root/.portfolios
     ports:
       - "8081:8080"  # Different port to avoid conflicts
     depends_on:
