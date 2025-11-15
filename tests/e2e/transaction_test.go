@@ -96,7 +96,7 @@ func TestTransactionCreateSellViaAPI(t *testing.T) {
 	assert.NotZero(t, sellResp.ID)
 	assert.Equal(t, "GOOGL", sellResp.Symbol)
 	// Type assertions removed - not critical for E2E
-	assert.Equal(t, 3.0, sellResp.Quantity)
+	assert.Equal(t, "3", sellResp.Quantity)
 }
 
 // TestTransactionListViaAPI tests listing transactions via API
@@ -247,9 +247,9 @@ func TestTransactionUpdateViaAPI(t *testing.T) {
 	}
 
 	var updateResp struct {
-		Quantity float64 `json:"quantity"`
-		Price    float64 `json:"price"`
-		Notes    string  `json:"notes"`
+		Quantity string `json:"quantity"`
+		Price    string `json:"price"`
+		Notes    string `json:"notes"`
 	}
 
 	updatePath := fmt.Sprintf("/api/v1/transactions/%s", createResp.ID)

@@ -31,20 +31,22 @@ func TestCSVImportGenericFormatViaAPI(t *testing.T) {
 	assert.NotEmpty(t, importBatchID, "Import batch ID should be returned")
 
 	// List transactions to verify import
-	var txList []struct {
-		Symbol          string  `json:"symbol"`
-		TransactionType string  `json:"transaction_type"`
-		Quantity        float64 `json:"quantity"`
+	var txListResp struct {
+		Transactions []struct {
+			Symbol string `json:"symbol"`
+			Type   string `json:"type"`
+		} `json:"transactions"`
+		Total int `json:"total"`
 	}
 
 	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
-	err = ctx.APIRequest("GET", txPath, nil, &txList)
+	err = ctx.APIRequest("GET", txPath, nil, &txListResp)
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, len(txList), 4, "Should have imported 4 transactions")
+	assert.GreaterOrEqual(t, len(txListResp.Transactions), 4, "Should have imported 4 transactions")
 
 	// Verify specific transactions
 	symbols := make(map[string]bool)
-	for _, tx := range txList {
+	for _, tx := range txListResp.Transactions {
 		symbols[tx.Symbol] = true
 	}
 	assert.True(t, symbols["AAPL"], "Should have AAPL transactions")
@@ -69,15 +71,17 @@ func TestCSVImportFidelityFormatViaAPI(t *testing.T) {
 	assert.NotEmpty(t, importBatchID, "Import batch ID should be returned")
 
 	// List transactions
-	var txList []struct {
-		Symbol   string  `json:"symbol"`
-		Quantity float64 `json:"quantity"`
+	var txListResp2 struct {
+		Transactions []struct {
+			Symbol string `json:"symbol"`
+		} `json:"transactions"`
+		Total int `json:"total"`
 	}
 
 	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
-	err = ctx.APIRequest("GET", txPath, nil, &txList)
+	err = ctx.APIRequest("GET", txPath, nil, &txListResp2)
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, len(txList), 2, "Should have imported 2 transactions")
+	assert.GreaterOrEqual(t, len(txListResp2.Transactions), 2, "Should have imported 2 transactions")
 }
 
 // TestCSVImportBulkTransactionsViaAPI tests bulk transaction import via API
@@ -94,28 +98,29 @@ func TestCSVImportBulkTransactionsViaAPI(t *testing.T) {
 	transactions := []map[string]interface{}{
 		{
 			"symbol":           "AAPL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         10.0,
 			"price":            150.00,
-			"transaction_date": "2024-01-15",
+			"date": "2024-01-15T00:00:00Z",
 		},
 		{
 			"symbol":           "GOOGL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         5.0,
 			"price":            120.00,
-			"transaction_date": "2024-02-20",
+			"date": "2024-02-20T00:00:00Z",
 		},
 		{
 			"symbol":           "MSFT",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         8.0,
 			"price":            300.00,
-			"transaction_date": "2024-03-10",
+			"date": "2024-03-10T00:00:00Z",
 		},
 	}
 
 	reqBody := map[string]interface{}{
+		"format":       "GENERIC",
 		"transactions": transactions,
 	}
 
@@ -131,11 +136,14 @@ func TestCSVImportBulkTransactionsViaAPI(t *testing.T) {
 	assert.NotEmpty(t, respBody.ImportBatchID, "Import batch ID should be returned")
 
 	// Verify transactions were imported
-	var txList []interface{}
+	var txListResp3 struct {
+		Transactions []interface{} `json:"transactions"`
+		Total        int           `json:"total"`
+	}
 	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
-	err = ctx.APIRequest("GET", txPath, nil, &txList)
+	err = ctx.APIRequest("GET", txPath, nil, &txListResp3)
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, len(txList), 3, "Should have at least 3 transactions")
+	assert.GreaterOrEqual(t, len(txListResp3.Transactions), 3, "Should have at least 3 transactions")
 }
 
 // TestCSVImportBatchListViaAPI tests listing import batches via API
@@ -231,14 +239,17 @@ func TestCLICSVImport(t *testing.T) {
 	t.Logf("CSV import stderr: %s", stderr)
 
 	// Even if CLI import has issues, verify via API
-	var txList []interface{}
+	var txListResp4 struct {
+		Transactions []interface{} `json:"transactions"`
+		Total        int           `json:"total"`
+	}
 	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
-	err = ctx.APIRequest("GET", txPath, nil, &txList)
+	err = ctx.APIRequest("GET", txPath, nil, &txListResp4)
 	require.NoError(t, err)
 
 	// If import worked, we should have transactions
-	if len(txList) > 0 {
-		t.Logf("Import succeeded: %d transactions imported", len(txList))
+	if len(txListResp4.Transactions) > 0 {
+		t.Logf("Import succeeded: %d transactions imported", len(txListResp4.Transactions))
 	}
 }
 
@@ -299,18 +310,21 @@ func TestCSVImportFlowEndToEnd(t *testing.T) {
 	assert.NotEmpty(t, importBatchID)
 
 	// 3. Verify transactions were imported
-	var txList []struct {
-		Symbol          string `json:"symbol"`
-		TransactionType string `json:"transaction_type"`
-		ImportBatchID   string `json:"import_batch_id"`
+	var txListResp5 struct {
+		Transactions []struct {
+			Symbol        string `json:"symbol"`
+			Type          string `json:"type"`
+			ImportBatchID string `json:"import_batch_id"`
+		} `json:"transactions"`
+		Total int `json:"total"`
 	}
 	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
-	err = ctx.APIRequest("GET", txPath, nil, &txList)
+	err = ctx.APIRequest("GET", txPath, nil, &txListResp5)
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, len(txList), 4)
+	assert.GreaterOrEqual(t, len(txListResp5.Transactions), 4)
 
 	// Verify batch ID is set
-	for _, tx := range txList {
+	for _, tx := range txListResp5.Transactions {
 		if tx.ImportBatchID != "" {
 			assert.Equal(t, importBatchID, tx.ImportBatchID)
 		}
@@ -332,10 +346,13 @@ func TestCSVImportFlowEndToEnd(t *testing.T) {
 	require.NoError(t, err)
 
 	// 6. Verify transactions are deleted
-	var txListAfter []interface{}
+	var txListAfter struct {
+		Transactions []interface{} `json:"transactions"`
+		Total        int           `json:"total"`
+	}
 	err = ctx.APIRequest("GET", txPath, nil, &txListAfter)
 	require.NoError(t, err)
-	assert.Less(t, len(txListAfter), len(txList))
+	assert.Less(t, len(txListAfter.Transactions), len(txListResp5.Transactions))
 }
 
 // Helper function to upload CSV file via multipart form

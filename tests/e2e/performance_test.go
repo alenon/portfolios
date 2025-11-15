@@ -25,7 +25,7 @@ func TestPerformanceGetPortfolioPerformanceViaAPI(t *testing.T) {
 
 	// Get performance metrics
 	var performance map[string]interface{}
-	perfPath := fmt.Sprintf("/api/v1/portfolios/%s/performance", portfolioID)
+	perfPath := fmt.Sprintf("/api/v1/portfolios/%s/performance/metrics", portfolioID)
 	err = ctx.APIRequest("GET", perfPath, nil, &performance)
 	require.NoError(t, err, "Get performance should succeed")
 
@@ -72,15 +72,18 @@ func TestPerformanceGetHoldingsViaAPI(t *testing.T) {
 	}
 
 	// Get holdings
-	var holdings []map[string]interface{}
+	var holdingsResp struct {
+		Holdings []map[string]interface{} `json:"holdings"`
+		Total    int                      `json:"total"`
+	}
 	holdingsPath := fmt.Sprintf("/api/v1/portfolios/%s/holdings", portfolioID)
-	err = ctx.APIRequest("GET", holdingsPath, nil, &holdings)
+	err = ctx.APIRequest("GET", holdingsPath, nil, &holdingsResp)
 	require.NoError(t, err, "Get holdings should succeed")
 
 	// Should have holdings for the symbols we bought
-	t.Logf("Holdings: %+v", holdings)
-	if len(holdings) > 0 {
-		assert.GreaterOrEqual(t, len(holdings), 1, "Should have at least one holding")
+	t.Logf("Holdings: %+v", holdingsResp.Holdings)
+	if len(holdingsResp.Holdings) > 0 {
+		assert.GreaterOrEqual(t, len(holdingsResp.Holdings), 1, "Should have at least one holding")
 	}
 }
 
@@ -233,15 +236,18 @@ func TestPerformanceWithMultipleTransactions(t *testing.T) {
 	}
 
 	// 3. Get holdings to verify current positions
-	var holdings []map[string]interface{}
+	var holdingsResp struct {
+		Holdings []map[string]interface{} `json:"holdings"`
+		Total    int                      `json:"total"`
+	}
 	holdingsPath := fmt.Sprintf("/api/v1/portfolios/%s/holdings", portfolioID)
-	err = ctx.APIRequest("GET", holdingsPath, nil, &holdings)
+	err = ctx.APIRequest("GET", holdingsPath, nil, &holdingsResp)
 	require.NoError(t, err)
-	t.Logf("Holdings after transactions: %+v", holdings)
+	t.Logf("Holdings after transactions: %+v", holdingsResp.Holdings)
 
 	// 4. Get performance metrics
 	var performance map[string]interface{}
-	perfPath := fmt.Sprintf("/api/v1/portfolios/%s/performance", portfolioID)
+	perfPath := fmt.Sprintf("/api/v1/portfolios/%s/performance/metrics", portfolioID)
 	err = ctx.APIRequest("GET", perfPath, nil, &performance)
 
 	// Log performance even if there's an error
@@ -293,14 +299,14 @@ func TestPerformanceComparePortfolios(t *testing.T) {
 
 	// Get performance for both
 	var perf1 map[string]interface{}
-	perfPath1 := fmt.Sprintf("/api/v1/portfolios/%s/performance", portfolio1ID)
+	perfPath1 := fmt.Sprintf("/api/v1/portfolios/%s/performance/metrics", portfolio1ID)
 	err = ctx.APIRequest("GET", perfPath1, nil, &perf1)
 	if err == nil {
 		t.Logf("Portfolio 1 performance: %+v", perf1)
 	}
 
 	var perf2 map[string]interface{}
-	perfPath2 := fmt.Sprintf("/api/v1/portfolios/%s/performance", portfolio2ID)
+	perfPath2 := fmt.Sprintf("/api/v1/portfolios/%s/performance/metrics", portfolio2ID)
 	err = ctx.APIRequest("GET", perfPath2, nil, &perf2)
 	if err == nil {
 		t.Logf("Portfolio 2 performance: %+v", perf2)
