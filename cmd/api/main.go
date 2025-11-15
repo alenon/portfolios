@@ -284,7 +284,7 @@ func main() {
 	api := router.Group("/api")
 	{
 		// Auth routes with rate limiting
-		auth := api.Group("/auth")
+		auth := api.Group("/v1/auth")
 		auth.Use(rateLimiter.Middleware())
 		{
 			auth.POST("/register", authHandler.Register)
@@ -316,8 +316,8 @@ func main() {
 				portfolios.DELETE("/:id", portfolioHandler.Delete)
 
 				// Transaction routes under portfolio
-				portfolios.POST("/:portfolio_id/transactions", transactionHandler.Create)
-				portfolios.GET("/:portfolio_id/transactions", transactionHandler.GetAll)
+				portfolios.POST("/:id/transactions", transactionHandler.Create)
+				portfolios.GET("/:id/transactions", transactionHandler.GetAll)
 
 				// CSV import routes
 				portfolios.POST("/:id/transactions/import/csv", importHandler.ImportCSV)
@@ -359,17 +359,17 @@ func main() {
 			}
 
 			// Portfolio-specific tax lot routes
-			v1.GET("/portfolios/:portfolio_id/tax-lots", taxLotHandler.GetAll)
-			v1.POST("/portfolios/:portfolio_id/tax-lots/allocate", taxLotHandler.AllocateSale)
-			v1.GET("/portfolios/:portfolio_id/tax-lots/harvest", taxLotHandler.IdentifyTaxLossOpportunities)
-			v1.POST("/portfolios/:portfolio_id/tax-lots/report", taxLotHandler.GenerateTaxReport)
+			v1.GET("/portfolios/:id/tax-lots", taxLotHandler.GetAll)
+			v1.POST("/portfolios/:id/tax-lots/allocate", taxLotHandler.AllocateSale)
+			v1.GET("/portfolios/:id/tax-lots/harvest", taxLotHandler.IdentifyTaxLossOpportunities)
+			v1.POST("/portfolios/:id/tax-lots/report", taxLotHandler.GenerateTaxReport)
 
 			// Portfolio action routes (pending corporate actions)
-			v1.GET("/portfolios/:portfolio_id/actions", portfolioActionHandler.GetAllActions)
-			v1.GET("/portfolios/:portfolio_id/actions/pending", portfolioActionHandler.GetPendingActions)
-			v1.GET("/portfolios/:portfolio_id/actions/:action_id", portfolioActionHandler.GetActionByID)
-			v1.POST("/portfolios/:portfolio_id/actions/:action_id/approve", portfolioActionHandler.ApproveAction)
-			v1.POST("/portfolios/:portfolio_id/actions/:action_id/reject", portfolioActionHandler.RejectAction)
+			v1.GET("/portfolios/:id/actions", portfolioActionHandler.GetAllActions)
+			v1.GET("/portfolios/:id/actions/pending", portfolioActionHandler.GetPendingActions)
+			v1.GET("/portfolios/:id/actions/:action_id", portfolioActionHandler.GetActionByID)
+			v1.POST("/portfolios/:id/actions/:action_id/approve", portfolioActionHandler.ApproveAction)
+			v1.POST("/portfolios/:id/actions/:action_id/reject", portfolioActionHandler.RejectAction)
 
 			// Market data routes (if available)
 			if marketDataHandler != nil {

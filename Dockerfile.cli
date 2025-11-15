@@ -24,9 +24,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -o /app/bin/portfolios ./cmd/portfolios
 
 # Runtime stage
-FROM alpine:latest
+FROM golang:1.25-alpine
 
-RUN apk --no-cache add ca-certificates curl bash jq
+RUN apk --no-cache add ca-certificates curl bash jq git
 
 WORKDIR /root/
 
@@ -35,6 +35,11 @@ COPY --from=builder /app/bin/portfolios /usr/local/bin/portfolios
 
 # Make it executable
 RUN chmod +x /usr/local/bin/portfolios
+
+# Copy go.mod and go.sum for running E2E tests
+COPY --from=builder /app/go.mod /app/go.sum /root/
+# Copy internal packages needed by E2E tests
+COPY --from=builder /app/internal /root/internal
 
 # Default command shows help
 CMD ["portfolios", "--help"]

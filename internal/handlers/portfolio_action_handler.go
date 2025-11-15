@@ -44,7 +44,7 @@ func NewPortfolioActionHandler(
 // GetPendingActions retrieves all pending corporate actions for a portfolio
 // GET /api/v1/portfolios/:portfolio_id/actions/pending
 func (h *PortfolioActionHandler) GetPendingActions(c *gin.Context) {
-	portfolioID := c.Param("portfolio_id")
+	portfolioID := c.Param("id")
 
 	// Get user ID from context
 	userID, exists := c.Get(middleware.UserIDContextKey)
@@ -96,7 +96,7 @@ func (h *PortfolioActionHandler) GetPendingActions(c *gin.Context) {
 // GetAllActions retrieves all corporate actions for a portfolio (all statuses)
 // GET /api/v1/portfolios/:portfolio_id/actions
 func (h *PortfolioActionHandler) GetAllActions(c *gin.Context) {
-	portfolioID := c.Param("portfolio_id")
+	portfolioID := c.Param("id")
 
 	// Get user ID from context
 	userID, exists := c.Get(middleware.UserIDContextKey)
@@ -148,7 +148,7 @@ func (h *PortfolioActionHandler) GetAllActions(c *gin.Context) {
 // GetActionByID retrieves a specific portfolio action
 // GET /api/v1/portfolios/:portfolio_id/actions/:action_id
 func (h *PortfolioActionHandler) GetActionByID(c *gin.Context) {
-	portfolioID := c.Param("portfolio_id")
+	portfolioID := c.Param("id")
 	actionID := c.Param("action_id")
 
 	// Get user ID from context
@@ -205,7 +205,7 @@ func (h *PortfolioActionHandler) GetActionByID(c *gin.Context) {
 // ApproveAction approves a pending corporate action
 // POST /api/v1/portfolios/:portfolio_id/actions/:action_id/approve
 func (h *PortfolioActionHandler) ApproveAction(c *gin.Context) {
-	portfolioID := c.Param("portfolio_id")
+	portfolioID := c.Param("id")
 	actionID := c.Param("action_id")
 
 	var req dto.ApproveActionRequest
@@ -342,7 +342,7 @@ func (h *PortfolioActionHandler) ApproveAction(c *gin.Context) {
 // RejectAction rejects a pending corporate action
 // POST /api/v1/portfolios/:portfolio_id/actions/:action_id/reject
 func (h *PortfolioActionHandler) RejectAction(c *gin.Context) {
-	portfolioID := c.Param("portfolio_id")
+	portfolioID := c.Param("id")
 	actionID := c.Param("action_id")
 
 	var req dto.RejectActionRequest

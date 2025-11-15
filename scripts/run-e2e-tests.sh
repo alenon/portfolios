@@ -82,7 +82,7 @@ echo ""
 # Run the tests with proper Go test flags
 TEST_EXIT_CODE=0
 docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" exec -T cli-e2e \
-    sh -c "cd /tests && go test -v -timeout $TEST_TIMEOUT ./..." || TEST_EXIT_CODE=$?
+    sh -c "cd /root && go test -v -timeout $TEST_TIMEOUT ./tests/e2e/..." || TEST_EXIT_CODE=$?
 
 echo ""
 

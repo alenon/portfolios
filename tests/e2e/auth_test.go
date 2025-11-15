@@ -116,7 +116,7 @@ func TestAuthProtectedEndpointAccess(t *testing.T) {
 
 	// Access protected endpoint (get current user)
 	var userResp struct {
-		ID    uint   `json:"id"`
+		ID    string `json:"id"`
 		Email string `json:"email"`
 	}
 

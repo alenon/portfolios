@@ -31,20 +31,22 @@ func TestCSVImportGenericFormatViaAPI(t *testing.T) {
 	assert.NotEmpty(t, importBatchID, "Import batch ID should be returned")
 
 	// List transactions to verify import
-	var txList []struct {
-		Symbol          string  `json:"symbol"`
-		TransactionType string  `json:"transaction_type"`
-		Quantity        float64 `json:"quantity"`
+	var txListResp struct {
+		Transactions []struct {
+			Symbol string `json:"symbol"`
+			Type   string `json:"type"`
+		} `json:"transactions"`
+		Total int `json:"total"`
 	}
 
-	txPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
-	err = ctx.APIRequest("GET", txPath, nil, &txList)
+	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
+	err = ctx.APIRequest("GET", txPath, nil, &txListResp)
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, len(txList), 4, "Should have imported 4 transactions")
+	assert.GreaterOrEqual(t, len(txListResp.Transactions), 4, "Should have imported 4 transactions")
 
 	// Verify specific transactions
 	symbols := make(map[string]bool)
-	for _, tx := range txList {
+	for _, tx := range txListResp.Transactions {
 		symbols[tx.Symbol] = true
 	}
 	assert.True(t, symbols["AAPL"], "Should have AAPL transactions")
@@ -69,15 +71,17 @@ func TestCSVImportFidelityFormatViaAPI(t *testing.T) {
 	assert.NotEmpty(t, importBatchID, "Import batch ID should be returned")
 
 	// List transactions
-	var txList []struct {
-		Symbol   string  `json:"symbol"`
-		Quantity float64 `json:"quantity"`
+	var txListResp2 struct {
+		Transactions []struct {
+			Symbol string `json:"symbol"`
+		} `json:"transactions"`
+		Total int `json:"total"`
 	}
 
-	txPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
-	err = ctx.APIRequest("GET", txPath, nil, &txList)
+	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
+	err = ctx.APIRequest("GET", txPath, nil, &txListResp2)
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, len(txList), 2, "Should have imported 2 transactions")
+	assert.GreaterOrEqual(t, len(txListResp2.Transactions), 2, "Should have imported 2 transactions")
 }
 
 // TestCSVImportBulkTransactionsViaAPI tests bulk transaction import via API
@@ -94,28 +98,29 @@ func TestCSVImportBulkTransactionsViaAPI(t *testing.T) {
 	transactions := []map[string]interface{}{
 		{
 			"symbol":           "AAPL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         10.0,
 			"price":            150.00,
-			"transaction_date": "2024-01-15",
+			"date": "2024-01-15T00:00:00Z",
 		},
 		{
 			"symbol":           "GOOGL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         5.0,
 			"price":            120.00,
-			"transaction_date": "2024-02-20",
+			"date": "2024-02-20T00:00:00Z",
 		},
 		{
 			"symbol":           "MSFT",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         8.0,
 			"price":            300.00,
-			"transaction_date": "2024-03-10",
+			"date": "2024-03-10T00:00:00Z",
 		},
 	}
 
 	reqBody := map[string]interface{}{
+		"format":       "GENERIC",
 		"transactions": transactions,
 	}
 
@@ -124,18 +129,21 @@ func TestCSVImportBulkTransactionsViaAPI(t *testing.T) {
 		ImportBatchID string `json:"import_batch_id"`
 	}
 
-	bulkPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions/import/bulk", portfolioID)
+	bulkPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions/import/bulk", portfolioID)
 	err = ctx.APIRequest("POST", bulkPath, reqBody, &respBody)
 	require.NoError(t, err, "Bulk import should succeed")
 	assert.Equal(t, 3, respBody.ImportedCount, "Should import 3 transactions")
 	assert.NotEmpty(t, respBody.ImportBatchID, "Import batch ID should be returned")
 
 	// Verify transactions were imported
-	var txList []interface{}
-	txPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
-	err = ctx.APIRequest("GET", txPath, nil, &txList)
+	var txListResp3 struct {
+		Transactions []interface{} `json:"transactions"`
+		Total        int           `json:"total"`
+	}
+	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
+	err = ctx.APIRequest("GET", txPath, nil, &txListResp3)
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, len(txList), 3, "Should have at least 3 transactions")
+	assert.GreaterOrEqual(t, len(txListResp3.Transactions), 3, "Should have at least 3 transactions")
 }
 
 // TestCSVImportBatchListViaAPI tests listing import batches via API
@@ -159,7 +167,7 @@ func TestCSVImportBatchListViaAPI(t *testing.T) {
 		TransactionCount int    `json:"transaction_count"`
 	}
 
-	batchPath := fmt.Sprintf("/api/v1/portfolios/%d/imports/batches", portfolioID)
+	batchPath := fmt.Sprintf("/api/v1/portfolios/%s/imports/batches", portfolioID)
 	err = ctx.APIRequest("GET", batchPath, nil, &batches)
 	require.NoError(t, err, "Batch listing should succeed")
 	assert.GreaterOrEqual(t, len(batches), 1, "Should have at least one import batch")
@@ -183,13 +191,13 @@ func TestCSVImportBatchDeleteViaAPI(t *testing.T) {
 
 	// Get initial transaction count
 	var txListBefore []interface{}
-	txPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
+	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
 	err = ctx.APIRequest("GET", txPath, nil, &txListBefore)
 	require.NoError(t, err)
 	initialCount := len(txListBefore)
 
 	// Delete the import batch
-	deletePath := fmt.Sprintf("/api/v1/portfolios/%d/imports/batches/%s", portfolioID, importBatchID)
+	deletePath := fmt.Sprintf("/api/v1/portfolios/%s/imports/batches/%s", portfolioID, importBatchID)
 	err = ctx.APIRequest("DELETE", deletePath, nil, nil)
 	require.NoError(t, err, "Batch deletion should succeed")
 
@@ -222,7 +230,7 @@ func TestCLICSVImport(t *testing.T) {
 	csvPath := GetFixturePath("generic_import.csv")
 	stdout, stderr, _ := ctx.RunCLI(
 		"transaction", "import",
-		fmt.Sprintf("%d", portfolioID),
+		portfolioID,
 		csvPath,
 		"--broker", "generic",
 		"--output", "json",
@@ -231,14 +239,17 @@ func TestCLICSVImport(t *testing.T) {
 	t.Logf("CSV import stderr: %s", stderr)
 
 	// Even if CLI import has issues, verify via API
-	var txList []interface{}
-	txPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
-	err = ctx.APIRequest("GET", txPath, nil, &txList)
+	var txListResp4 struct {
+		Transactions []interface{} `json:"transactions"`
+		Total        int           `json:"total"`
+	}
+	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
+	err = ctx.APIRequest("GET", txPath, nil, &txListResp4)
 	require.NoError(t, err)
 
 	// If import worked, we should have transactions
-	if len(txList) > 0 {
-		t.Logf("Import succeeded: %d transactions imported", len(txList))
+	if len(txListResp4.Transactions) > 0 {
+		t.Logf("Import succeeded: %d transactions imported", len(txListResp4.Transactions))
 	}
 }
 
@@ -268,7 +279,7 @@ func TestCLIImportBatchList(t *testing.T) {
 	// List batches via CLI
 	stdout, stderr, err := ctx.RunCLI(
 		"transaction", "batches",
-		fmt.Sprintf("%d", portfolioID),
+		portfolioID,
 		"--output", "json",
 	)
 	t.Logf("Batch list stdout: %s", stdout)
@@ -299,18 +310,21 @@ func TestCSVImportFlowEndToEnd(t *testing.T) {
 	assert.NotEmpty(t, importBatchID)
 
 	// 3. Verify transactions were imported
-	var txList []struct {
-		Symbol          string `json:"symbol"`
-		TransactionType string `json:"transaction_type"`
-		ImportBatchID   string `json:"import_batch_id"`
+	var txListResp5 struct {
+		Transactions []struct {
+			Symbol        string `json:"symbol"`
+			Type          string `json:"type"`
+			ImportBatchID string `json:"import_batch_id"`
+		} `json:"transactions"`
+		Total int `json:"total"`
 	}
-	txPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
-	err = ctx.APIRequest("GET", txPath, nil, &txList)
+	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
+	err = ctx.APIRequest("GET", txPath, nil, &txListResp5)
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, len(txList), 4)
+	assert.GreaterOrEqual(t, len(txListResp5.Transactions), 4)
 
 	// Verify batch ID is set
-	for _, tx := range txList {
+	for _, tx := range txListResp5.Transactions {
 		if tx.ImportBatchID != "" {
 			assert.Equal(t, importBatchID, tx.ImportBatchID)
 		}
@@ -321,25 +335,28 @@ func TestCSVImportFlowEndToEnd(t *testing.T) {
 		ImportBatchID    string `json:"import_batch_id"`
 		TransactionCount int    `json:"transaction_count"`
 	}
-	batchPath := fmt.Sprintf("/api/v1/portfolios/%d/imports/batches", portfolioID)
+	batchPath := fmt.Sprintf("/api/v1/portfolios/%s/imports/batches", portfolioID)
 	err = ctx.APIRequest("GET", batchPath, nil, &batches)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(batches), 1)
 
 	// 5. Delete import batch
-	deletePath := fmt.Sprintf("/api/v1/portfolios/%d/imports/batches/%s", portfolioID, importBatchID)
+	deletePath := fmt.Sprintf("/api/v1/portfolios/%s/imports/batches/%s", portfolioID, importBatchID)
 	err = ctx.APIRequest("DELETE", deletePath, nil, nil)
 	require.NoError(t, err)
 
 	// 6. Verify transactions are deleted
-	var txListAfter []interface{}
+	var txListAfter struct {
+		Transactions []interface{} `json:"transactions"`
+		Total        int           `json:"total"`
+	}
 	err = ctx.APIRequest("GET", txPath, nil, &txListAfter)
 	require.NoError(t, err)
-	assert.Less(t, len(txListAfter), len(txList))
+	assert.Less(t, len(txListAfter.Transactions), len(txListResp5.Transactions))
 }
 
 // Helper function to upload CSV file via multipart form
-func uploadCSVFile(ctx *TestContext, portfolioID uint, csvPath string, broker string) (string, error) {
+func uploadCSVFile(ctx *TestContext, portfolioID string, csvPath string, broker string) (string, error) {
 	// Read CSV file
 	fileContent, err := os.ReadFile(csvPath)
 	if err != nil {
@@ -370,7 +387,7 @@ func uploadCSVFile(ctx *TestContext, portfolioID uint, csvPath string, broker st
 	}
 
 	// Make request
-	url := fmt.Sprintf("%s/api/v1/portfolios/%d/transactions/import/csv", ctx.APIBaseURL, portfolioID)
+	url := fmt.Sprintf("%s/api/v1/portfolios/%s/transactions/import/csv", ctx.APIBaseURL, portfolioID)
 	req, err := http.NewRequest("POST", url, &buf)
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %w", err)

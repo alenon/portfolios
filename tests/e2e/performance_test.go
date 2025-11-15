@@ -25,7 +25,7 @@ func TestPerformanceGetPortfolioPerformanceViaAPI(t *testing.T) {
 
 	// Get performance metrics
 	var performance map[string]interface{}
-	perfPath := fmt.Sprintf("/api/v1/portfolios/%d/performance", portfolioID)
+	perfPath := fmt.Sprintf("/api/v1/portfolios/%s/performance/metrics", portfolioID)
 	err = ctx.APIRequest("GET", perfPath, nil, &performance)
 	require.NoError(t, err, "Get performance should succeed")
 
@@ -50,21 +50,21 @@ func TestPerformanceGetHoldingsViaAPI(t *testing.T) {
 	transactions := []map[string]interface{}{
 		{
 			"symbol":           "AAPL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         10.0,
 			"price":            150.00,
-			"transaction_date": time.Now().AddDate(0, 0, -10).Format("2006-01-02"),
+			"date": time.Now().AddDate(0, 0, -10).Format("2006-01-02T15:04:05Z07:00"),
 		},
 		{
 			"symbol":           "GOOGL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         5.0,
 			"price":            120.00,
-			"transaction_date": time.Now().AddDate(0, 0, -5).Format("2006-01-02"),
+			"date": time.Now().AddDate(0, 0, -5).Format("2006-01-02T15:04:05Z07:00"),
 		},
 	}
 
-	txPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
+	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
 	for _, tx := range transactions {
 		var resp interface{}
 		err := ctx.APIRequest("POST", txPath, tx, &resp)
@@ -72,15 +72,18 @@ func TestPerformanceGetHoldingsViaAPI(t *testing.T) {
 	}
 
 	// Get holdings
-	var holdings []map[string]interface{}
-	holdingsPath := fmt.Sprintf("/api/v1/portfolios/%d/holdings", portfolioID)
-	err = ctx.APIRequest("GET", holdingsPath, nil, &holdings)
+	var holdingsResp struct {
+		Holdings []map[string]interface{} `json:"holdings"`
+		Total    int                      `json:"total"`
+	}
+	holdingsPath := fmt.Sprintf("/api/v1/portfolios/%s/holdings", portfolioID)
+	err = ctx.APIRequest("GET", holdingsPath, nil, &holdingsResp)
 	require.NoError(t, err, "Get holdings should succeed")
 
 	// Should have holdings for the symbols we bought
-	t.Logf("Holdings: %+v", holdings)
-	if len(holdings) > 0 {
-		assert.GreaterOrEqual(t, len(holdings), 1, "Should have at least one holding")
+	t.Logf("Holdings: %+v", holdingsResp.Holdings)
+	if len(holdingsResp.Holdings) > 0 {
+		assert.GreaterOrEqual(t, len(holdingsResp.Holdings), 1, "Should have at least one holding")
 	}
 }
 
@@ -96,7 +99,7 @@ func TestPerformanceSnapshotsViaAPI(t *testing.T) {
 
 	// Get snapshots (may be empty if none created)
 	var snapshots []map[string]interface{}
-	snapshotsPath := fmt.Sprintf("/api/v1/portfolios/%d/performance/snapshots", portfolioID)
+	snapshotsPath := fmt.Sprintf("/api/v1/portfolios/%s/performance/snapshots", portfolioID)
 	err = ctx.APIRequest("GET", snapshotsPath, nil, &snapshots)
 
 	// Endpoint may or may not exist, just log the result
@@ -130,7 +133,7 @@ func TestCLIPerformanceShow(t *testing.T) {
 	// Show performance via CLI
 	stdout, stderr, err := ctx.RunCLI(
 		"performance", "show",
-		fmt.Sprintf("%d", portfolioID),
+		portfolioID,
 		"--output", "json",
 	)
 	t.Logf("Performance show stdout: %s", stdout)
@@ -165,7 +168,7 @@ func TestCLIPerformanceSnapshots(t *testing.T) {
 	// List snapshots via CLI
 	stdout, stderr, err := ctx.RunCLI(
 		"performance", "snapshots",
-		fmt.Sprintf("%d", portfolioID),
+		portfolioID,
 		"--output", "json",
 	)
 	t.Logf("Performance snapshots stdout: %s", stdout)
@@ -194,38 +197,38 @@ func TestPerformanceWithMultipleTransactions(t *testing.T) {
 	transactions := []map[string]interface{}{
 		{
 			"symbol":           "AAPL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         10.0,
 			"price":            140.00,
-			"transaction_date": time.Now().AddDate(0, 0, -30).Format("2006-01-02"),
-			"fees":             5.00,
+			"date": time.Now().AddDate(0, 0, -30).Format("2006-01-02T15:04:05Z07:00"),
+			"commission":             5.00,
 		},
 		{
 			"symbol":           "AAPL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         5.0,
 			"price":            145.00,
-			"transaction_date": time.Now().AddDate(0, 0, -20).Format("2006-01-02"),
-			"fees":             2.50,
+			"date": time.Now().AddDate(0, 0, -20).Format("2006-01-02T15:04:05Z07:00"),
+			"commission":             2.50,
 		},
 		{
 			"symbol":           "GOOGL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         8.0,
 			"price":            115.00,
-			"transaction_date": time.Now().AddDate(0, 0, -15).Format("2006-01-02"),
+			"date": time.Now().AddDate(0, 0, -15).Format("2006-01-02T15:04:05Z07:00"),
 		},
 		{
 			"symbol":           "AAPL",
-			"transaction_type": "sell",
+			"type": "SELL",
 			"quantity":         5.0,
 			"price":            155.00,
-			"transaction_date": time.Now().AddDate(0, 0, -5).Format("2006-01-02"),
-			"fees":             2.00,
+			"date": time.Now().AddDate(0, 0, -5).Format("2006-01-02T15:04:05Z07:00"),
+			"commission":             2.00,
 		},
 	}
 
-	txPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
+	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
 	for _, tx := range transactions {
 		var resp interface{}
 		err := ctx.APIRequest("POST", txPath, tx, &resp)
@@ -233,15 +236,18 @@ func TestPerformanceWithMultipleTransactions(t *testing.T) {
 	}
 
 	// 3. Get holdings to verify current positions
-	var holdings []map[string]interface{}
-	holdingsPath := fmt.Sprintf("/api/v1/portfolios/%d/holdings", portfolioID)
-	err = ctx.APIRequest("GET", holdingsPath, nil, &holdings)
+	var holdingsResp struct {
+		Holdings []map[string]interface{} `json:"holdings"`
+		Total    int                      `json:"total"`
+	}
+	holdingsPath := fmt.Sprintf("/api/v1/portfolios/%s/holdings", portfolioID)
+	err = ctx.APIRequest("GET", holdingsPath, nil, &holdingsResp)
 	require.NoError(t, err)
-	t.Logf("Holdings after transactions: %+v", holdings)
+	t.Logf("Holdings after transactions: %+v", holdingsResp.Holdings)
 
 	// 4. Get performance metrics
 	var performance map[string]interface{}
-	perfPath := fmt.Sprintf("/api/v1/portfolios/%d/performance", portfolioID)
+	perfPath := fmt.Sprintf("/api/v1/portfolios/%s/performance/metrics", portfolioID)
 	err = ctx.APIRequest("GET", perfPath, nil, &performance)
 
 	// Log performance even if there's an error
@@ -266,26 +272,26 @@ func TestPerformanceComparePortfolios(t *testing.T) {
 	portfolio2ID := createTestPortfolio(ctx, t, "Diversified Portfolio")
 
 	// Add transactions to portfolio 1 (tech-heavy)
-	txPath1 := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolio1ID)
+	txPath1 := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolio1ID)
 	techTx := map[string]interface{}{
 		"symbol":           "AAPL",
-		"transaction_type": "buy",
+		"type": "BUY",
 		"quantity":         20.0,
 		"price":            150.00,
-		"transaction_date": time.Now().AddDate(0, 0, -10).Format("2006-01-02"),
+		"date": time.Now().AddDate(0, 0, -10).Format("2006-01-02T15:04:05Z07:00"),
 	}
 	var resp1 interface{}
 	err = ctx.APIRequest("POST", txPath1, techTx, &resp1)
 	require.NoError(t, err)
 
 	// Add transactions to portfolio 2 (diversified)
-	txPath2 := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolio2ID)
+	txPath2 := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolio2ID)
 	divTx := map[string]interface{}{
 		"symbol":           "SPY",
-		"transaction_type": "buy",
+		"type": "BUY",
 		"quantity":         10.0,
 		"price":            400.00,
-		"transaction_date": time.Now().AddDate(0, 0, -10).Format("2006-01-02"),
+		"date": time.Now().AddDate(0, 0, -10).Format("2006-01-02T15:04:05Z07:00"),
 	}
 	var resp2 interface{}
 	err = ctx.APIRequest("POST", txPath2, divTx, &resp2)
@@ -293,14 +299,14 @@ func TestPerformanceComparePortfolios(t *testing.T) {
 
 	// Get performance for both
 	var perf1 map[string]interface{}
-	perfPath1 := fmt.Sprintf("/api/v1/portfolios/%d/performance", portfolio1ID)
+	perfPath1 := fmt.Sprintf("/api/v1/portfolios/%s/performance/metrics", portfolio1ID)
 	err = ctx.APIRequest("GET", perfPath1, nil, &perf1)
 	if err == nil {
 		t.Logf("Portfolio 1 performance: %+v", perf1)
 	}
 
 	var perf2 map[string]interface{}
-	perfPath2 := fmt.Sprintf("/api/v1/portfolios/%d/performance", portfolio2ID)
+	perfPath2 := fmt.Sprintf("/api/v1/portfolios/%s/performance/metrics", portfolio2ID)
 	err = ctx.APIRequest("GET", perfPath2, nil, &perf2)
 	if err == nil {
 		t.Logf("Portfolio 2 performance: %+v", perf2)
@@ -311,25 +317,25 @@ func TestPerformanceComparePortfolios(t *testing.T) {
 }
 
 // Helper function to create test transactions
-func createTestTransactions(ctx *TestContext, t *testing.T, portfolioID uint) {
+func createTestTransactions(ctx *TestContext, t *testing.T, portfolioID string) {
 	transactions := []map[string]interface{}{
 		{
 			"symbol":           "AAPL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         10.0,
 			"price":            150.00,
-			"transaction_date": time.Now().AddDate(0, 0, -5).Format("2006-01-02"),
+			"date": time.Now().AddDate(0, 0, -5).Format("2006-01-02T15:04:05Z07:00"),
 		},
 		{
 			"symbol":           "GOOGL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         5.0,
 			"price":            120.00,
-			"transaction_date": time.Now().AddDate(0, 0, -3).Format("2006-01-02"),
+			"date": time.Now().AddDate(0, 0, -3).Format("2006-01-02T15:04:05Z07:00"),
 		},
 	}
 
-	txPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
+	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
 	for _, tx := range transactions {
 		var resp interface{}
 		err := ctx.APIRequest("POST", txPath, tx, &resp)
