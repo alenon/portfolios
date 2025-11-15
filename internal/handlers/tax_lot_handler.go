@@ -27,7 +27,7 @@ func NewTaxLotHandler(taxLotService services.TaxLotService) *TaxLotHandler {
 // GetAll retrieves all tax lots for a portfolio
 // GET /api/v1/portfolios/:portfolio_id/tax-lots
 func (h *TaxLotHandler) GetAll(c *gin.Context) {
-	portfolioID := c.Param("portfolio_id")
+	portfolioID := c.Param("id")
 	symbol := c.Query("symbol")
 
 	// Get user ID from context
@@ -151,7 +151,7 @@ func (h *TaxLotHandler) GetByID(c *gin.Context) {
 // AllocateSale shows how a sale would be allocated to tax lots
 // POST /api/v1/portfolios/:portfolio_id/tax-lots/allocate
 func (h *TaxLotHandler) AllocateSale(c *gin.Context) {
-	portfolioID := c.Param("portfolio_id")
+	portfolioID := c.Param("id")
 
 	var req dto.TaxLotAllocationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -246,7 +246,7 @@ func (h *TaxLotHandler) AllocateSale(c *gin.Context) {
 // IdentifyTaxLossOpportunities identifies potential tax-loss harvesting opportunities
 // GET /api/v1/portfolios/:portfolio_id/tax-lots/harvest
 func (h *TaxLotHandler) IdentifyTaxLossOpportunities(c *gin.Context) {
-	portfolioID := c.Param("portfolio_id")
+	portfolioID := c.Param("id")
 
 	// Get threshold from query params (default to -3%)
 	thresholdStr := c.DefaultQuery("threshold", "-3")
@@ -317,7 +317,7 @@ func (h *TaxLotHandler) IdentifyTaxLossOpportunities(c *gin.Context) {
 // GenerateTaxReport generates a tax report for a given year
 // POST /api/v1/portfolios/:portfolio_id/tax-lots/report
 func (h *TaxLotHandler) GenerateTaxReport(c *gin.Context) {
-	portfolioID := c.Param("portfolio_id")
+	portfolioID := c.Param("id")
 
 	var req dto.TaxReportRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

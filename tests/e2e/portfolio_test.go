@@ -26,7 +26,7 @@ func TestPortfolioCreateViaAPI(t *testing.T) {
 	}
 
 	var respBody struct {
-		ID          uint   `json:"id"`
+		ID          string `json:"id"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
 		Currency    string `json:"currency"`
@@ -61,7 +61,7 @@ func TestPortfolioListViaAPI(t *testing.T) {
 
 	// List portfolios
 	var portfolios []struct {
-		ID   uint   `json:"id"`
+		ID   string `json:"id"`
 		Name string `json:"name"`
 	}
 
@@ -86,7 +86,7 @@ func TestPortfolioGetByIDViaAPI(t *testing.T) {
 	}
 
 	var createResp struct {
-		ID          uint   `json:"id"`
+		ID          string `json:"id"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
 		Currency    string `json:"currency"`
@@ -97,13 +97,13 @@ func TestPortfolioGetByIDViaAPI(t *testing.T) {
 
 	// Get portfolio by ID
 	var getResp struct {
-		ID          uint   `json:"id"`
+		ID          string `json:"id"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
 		Currency    string `json:"currency"`
 	}
 
-	path := fmt.Sprintf("/api/v1/portfolios/%d", createResp.ID)
+	path := fmt.Sprintf("/api/v1/portfolios/%s", createResp.ID)
 	err = ctx.APIRequest("GET", path, nil, &getResp)
 	require.NoError(t, err, "Get portfolio should succeed")
 	assert.Equal(t, createResp.ID, getResp.ID)
@@ -126,7 +126,7 @@ func TestPortfolioUpdateViaAPI(t *testing.T) {
 	}
 
 	var createResp struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
 
 	err = ctx.APIRequest("POST", "/api/v1/portfolios", createReq, &createResp)
@@ -139,12 +139,12 @@ func TestPortfolioUpdateViaAPI(t *testing.T) {
 	}
 
 	var updateResp struct {
-		ID          uint   `json:"id"`
+		ID          string `json:"id"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	}
 
-	path := fmt.Sprintf("/api/v1/portfolios/%d", createResp.ID)
+	path := fmt.Sprintf("/api/v1/portfolios/%s", createResp.ID)
 	err = ctx.APIRequest("PUT", path, updateReq, &updateResp)
 	require.NoError(t, err, "Portfolio update should succeed")
 	assert.Equal(t, "Updated Name", updateResp.Name)
@@ -166,14 +166,14 @@ func TestPortfolioDeleteViaAPI(t *testing.T) {
 	}
 
 	var createResp struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
 
 	err = ctx.APIRequest("POST", "/api/v1/portfolios", createReq, &createResp)
 	require.NoError(t, err)
 
 	// Delete portfolio
-	path := fmt.Sprintf("/api/v1/portfolios/%d", createResp.ID)
+	path := fmt.Sprintf("/api/v1/portfolios/%s", createResp.ID)
 	err = ctx.APIRequest("DELETE", path, nil, nil)
 	require.NoError(t, err, "Portfolio deletion should succeed")
 
@@ -197,7 +197,7 @@ func TestPortfolioHoldingsViaAPI(t *testing.T) {
 	}
 
 	var createResp struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
 
 	err = ctx.APIRequest("POST", "/api/v1/portfolios", createReq, &createResp)
@@ -205,7 +205,7 @@ func TestPortfolioHoldingsViaAPI(t *testing.T) {
 
 	// Get holdings (should be empty initially)
 	var holdings []interface{}
-	path := fmt.Sprintf("/api/v1/portfolios/%d/holdings", createResp.ID)
+	path := fmt.Sprintf("/api/v1/portfolios/%s/holdings", createResp.ID)
 	err = ctx.APIRequest("GET", path, nil, &holdings)
 	require.NoError(t, err, "Get holdings should succeed")
 	assert.Equal(t, 0, len(holdings), "Holdings should be empty initially")
@@ -303,7 +303,7 @@ func TestCLIPortfolioShow(t *testing.T) {
 		"currency":    "USD",
 	}
 	var createResp struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
 	err = ctx.APIRequest("POST", "/api/v1/portfolios", createReq, &createResp)
 	require.NoError(t, err)
@@ -315,7 +315,7 @@ func TestCLIPortfolioShow(t *testing.T) {
 	// Show portfolio via CLI
 	stdout, stderr, err := ctx.RunCLI(
 		"portfolio", "show",
-		fmt.Sprintf("%d", createResp.ID),
+		createResp.ID,
 		"--output", "json",
 	)
 	t.Logf("Portfolio show stdout: %s", stdout)
@@ -347,7 +347,7 @@ func TestCLIPortfolioDelete(t *testing.T) {
 		"currency": "USD",
 	}
 	var createResp struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
 	err = ctx.APIRequest("POST", "/api/v1/portfolios", createReq, &createResp)
 	require.NoError(t, err)
@@ -359,7 +359,7 @@ func TestCLIPortfolioDelete(t *testing.T) {
 	// Delete portfolio via CLI
 	stdout, stderr, err := ctx.RunCLI(
 		"portfolio", "delete",
-		fmt.Sprintf("%d", createResp.ID),
+		createResp.ID,
 		"--force", // Skip confirmation
 	)
 	t.Logf("Portfolio delete stdout: %s", stdout)
@@ -371,7 +371,7 @@ func TestCLIPortfolioDelete(t *testing.T) {
 	}
 
 	// Verify portfolio is deleted via API
-	path := fmt.Sprintf("/api/v1/portfolios/%d", createResp.ID)
+	path := fmt.Sprintf("/api/v1/portfolios/%s", createResp.ID)
 	err = ctx.APIRequest("GET", path, nil, &struct{}{})
 	assert.Error(t, err, "Portfolio should be deleted")
 }
@@ -391,7 +391,7 @@ func TestPortfolioFlowEndToEnd(t *testing.T) {
 		"currency":    "USD",
 	}
 	var createResp struct {
-		ID          uint   `json:"id"`
+		ID          string `json:"id"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	}
@@ -401,7 +401,7 @@ func TestPortfolioFlowEndToEnd(t *testing.T) {
 
 	// 3. List portfolios
 	var portfolios []struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
 	err = ctx.APIRequest("GET", "/api/v1/portfolios", nil, &portfolios)
 	require.NoError(t, err)
@@ -411,7 +411,7 @@ func TestPortfolioFlowEndToEnd(t *testing.T) {
 	var getResp struct {
 		Name string `json:"name"`
 	}
-	path := fmt.Sprintf("/api/v1/portfolios/%d", portfolioID)
+	path := fmt.Sprintf("/api/v1/portfolios/%s", portfolioID)
 	err = ctx.APIRequest("GET", path, nil, &getResp)
 	require.NoError(t, err)
 	assert.Equal(t, "End-to-End Portfolio", getResp.Name)
@@ -431,7 +431,7 @@ func TestPortfolioFlowEndToEnd(t *testing.T) {
 
 	// 6. Get holdings (should be empty)
 	var holdings []interface{}
-	holdingsPath := fmt.Sprintf("/api/v1/portfolios/%d/holdings", portfolioID)
+	holdingsPath := fmt.Sprintf("/api/v1/portfolios/%s/holdings", portfolioID)
 	err = ctx.APIRequest("GET", holdingsPath, nil, &holdings)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(holdings))

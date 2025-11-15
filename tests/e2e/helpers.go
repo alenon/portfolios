@@ -196,7 +196,7 @@ func (ctx *TestContext) CreateTestUser(email, password string) error {
 		AccessToken  string `json:"access_token"`
 		RefreshToken string `json:"refresh_token"`
 		User         struct {
-			ID    uint   `json:"id"`
+			ID    string `json:"id"`
 			Email string `json:"email"`
 		} `json:"user"`
 	}

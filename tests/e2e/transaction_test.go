@@ -31,14 +31,14 @@ func TestTransactionCreateBuyViaAPI(t *testing.T) {
 	}
 
 	var respBody struct {
-		ID              uint    `json:"id"`
+		ID              string  `json:"id"`
 		Symbol          string  `json:"symbol"`
 		TransactionType string  `json:"transaction_type"`
 		Quantity        float64 `json:"quantity"`
 		Price           float64 `json:"price"`
 	}
 
-	path := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
+	path := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
 	err = ctx.APIRequest("POST", path, reqBody, &respBody)
 	require.NoError(t, err, "Buy transaction creation should succeed")
 	assert.NotZero(t, respBody.ID)
@@ -68,7 +68,7 @@ func TestTransactionCreateSellViaAPI(t *testing.T) {
 	}
 
 	var buyResp interface{}
-	path := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
+	path := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
 	err = ctx.APIRequest("POST", path, buyReq, &buyResp)
 	require.NoError(t, err)
 
@@ -83,7 +83,7 @@ func TestTransactionCreateSellViaAPI(t *testing.T) {
 	}
 
 	var sellResp struct {
-		ID              uint    `json:"id"`
+		ID              string  `json:"id"`
 		Symbol          string  `json:"symbol"`
 		TransactionType string  `json:"transaction_type"`
 		Quantity        float64 `json:"quantity"`
@@ -133,7 +133,7 @@ func TestTransactionListViaAPI(t *testing.T) {
 		},
 	}
 
-	path := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
+	path := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
 	for _, tx := range transactions {
 		var resp interface{}
 		err := ctx.APIRequest("POST", path, tx, &resp)
@@ -142,7 +142,7 @@ func TestTransactionListViaAPI(t *testing.T) {
 
 	// List transactions
 	var txList []struct {
-		ID     uint   `json:"id"`
+		ID     string `json:"id"`
 		Symbol string `json:"symbol"`
 	}
 
@@ -172,16 +172,16 @@ func TestTransactionGetByIDViaAPI(t *testing.T) {
 	}
 
 	var createResp struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
 
-	createPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
+	createPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
 	err = ctx.APIRequest("POST", createPath, createReq, &createResp)
 	require.NoError(t, err)
 
 	// Get transaction by ID
 	var getResp struct {
-		ID              uint    `json:"id"`
+		ID              string  `json:"id"`
 		Symbol          string  `json:"symbol"`
 		TransactionType string  `json:"transaction_type"`
 		Quantity        float64 `json:"quantity"`
@@ -189,7 +189,7 @@ func TestTransactionGetByIDViaAPI(t *testing.T) {
 		Notes           string  `json:"notes"`
 	}
 
-	getPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions/%d", portfolioID, createResp.ID)
+	getPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions/%s", portfolioID, createResp.ID)
 	err = ctx.APIRequest("GET", getPath, nil, &getResp)
 	require.NoError(t, err, "Get transaction should succeed")
 	assert.Equal(t, createResp.ID, getResp.ID)
@@ -219,10 +219,10 @@ func TestTransactionUpdateViaAPI(t *testing.T) {
 	}
 
 	var createResp struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
 
-	createPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
+	createPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
 	err = ctx.APIRequest("POST", createPath, createReq, &createResp)
 	require.NoError(t, err)
 
@@ -239,7 +239,7 @@ func TestTransactionUpdateViaAPI(t *testing.T) {
 		Notes    string  `json:"notes"`
 	}
 
-	updatePath := fmt.Sprintf("/api/v1/portfolios/%d/transactions/%d", portfolioID, createResp.ID)
+	updatePath := fmt.Sprintf("/api/v1/portfolios/%s/transactions/%s", portfolioID, createResp.ID)
 	err = ctx.APIRequest("PUT", updatePath, updateReq, &updateResp)
 	require.NoError(t, err, "Transaction update should succeed")
 	assert.Equal(t, 7.0, updateResp.Quantity)
@@ -267,15 +267,15 @@ func TestTransactionDeleteViaAPI(t *testing.T) {
 	}
 
 	var createResp struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
 
-	createPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
+	createPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
 	err = ctx.APIRequest("POST", createPath, createReq, &createResp)
 	require.NoError(t, err)
 
 	// Delete transaction
-	deletePath := fmt.Sprintf("/api/v1/portfolios/%d/transactions/%d", portfolioID, createResp.ID)
+	deletePath := fmt.Sprintf("/api/v1/portfolios/%s/transactions/%s", portfolioID, createResp.ID)
 	err = ctx.APIRequest("DELETE", deletePath, nil, nil)
 	require.NoError(t, err, "Transaction deletion should succeed")
 
@@ -307,7 +307,7 @@ func TestCLITransactionList(t *testing.T) {
 		"transaction_date": time.Now().Format("2006-01-02"),
 	}
 	var createResp interface{}
-	path := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
+	path := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
 	err = ctx.APIRequest("POST", path, createReq, &createResp)
 	require.NoError(t, err)
 
@@ -318,7 +318,7 @@ func TestCLITransactionList(t *testing.T) {
 	// List transactions via CLI
 	stdout, stderr, err := ctx.RunCLI(
 		"transaction", "list",
-		fmt.Sprintf("%d", portfolioID),
+		portfolioID,
 		"--output", "json",
 	)
 	t.Logf("Transaction list stdout: %s", stdout)
@@ -355,9 +355,9 @@ func TestCLITransactionDelete(t *testing.T) {
 		"transaction_date": time.Now().Format("2006-01-02"),
 	}
 	var createResp struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
-	path := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
+	path := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
 	err = ctx.APIRequest("POST", path, createReq, &createResp)
 	require.NoError(t, err)
 
@@ -368,15 +368,15 @@ func TestCLITransactionDelete(t *testing.T) {
 	// Delete transaction via CLI
 	stdout, stderr, _ := ctx.RunCLI(
 		"transaction", "delete",
-		fmt.Sprintf("%d", portfolioID),
-		fmt.Sprintf("%d", createResp.ID),
+		portfolioID,
+		createResp.ID,
 		"--force", // Skip confirmation
 	)
 	t.Logf("Transaction delete stdout: %s", stdout)
 	t.Logf("Transaction delete stderr: %s", stderr)
 
 	// Verify deletion via API
-	getPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions/%d", portfolioID, createResp.ID)
+	getPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions/%s", portfolioID, createResp.ID)
 	err = ctx.APIRequest("GET", getPath, nil, &struct{}{})
 	if err == nil {
 		t.Log("Warning: Transaction deletion via CLI may not have worked, but continuing test")
@@ -403,9 +403,9 @@ func TestTransactionFlowEndToEnd(t *testing.T) {
 		"fees":             5.00,
 	}
 	var buyResp struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
-	txPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions", portfolioID)
+	txPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolioID)
 	err = ctx.APIRequest("POST", txPath, buyReq, &buyResp)
 	require.NoError(t, err)
 
@@ -423,7 +423,7 @@ func TestTransactionFlowEndToEnd(t *testing.T) {
 
 	// 4. List transactions
 	var txList []struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
 	err = ctx.APIRequest("GET", txPath, nil, &txList)
 	require.NoError(t, err)
@@ -434,7 +434,7 @@ func TestTransactionFlowEndToEnd(t *testing.T) {
 		Symbol   string  `json:"symbol"`
 		Quantity float64 `json:"quantity"`
 	}
-	getTxPath := fmt.Sprintf("/api/v1/portfolios/%d/transactions/%d", portfolioID, buyResp.ID)
+	getTxPath := fmt.Sprintf("/api/v1/portfolios/%s/transactions/%s", portfolioID, buyResp.ID)
 	err = ctx.APIRequest("GET", getTxPath, nil, &getTx)
 	require.NoError(t, err)
 	assert.Equal(t, "AAPL", getTx.Symbol)
@@ -471,14 +471,14 @@ func TestTransactionFlowEndToEnd(t *testing.T) {
 }
 
 // Helper function to create a test portfolio
-func createTestPortfolio(ctx *TestContext, t *testing.T, name string) uint {
+func createTestPortfolio(ctx *TestContext, t *testing.T, name string) string {
 	reqBody := map[string]interface{}{
 		"name":     name,
 		"currency": "USD",
 	}
 
 	var respBody struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
 
 	err := ctx.APIRequest("POST", "/api/v1/portfolios", reqBody, &respBody)

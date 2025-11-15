@@ -28,7 +28,7 @@ func NewTransactionHandler(transactionService services.TransactionService) *Tran
 // Create handles transaction creation
 // POST /api/v1/portfolios/:portfolio_id/transactions
 func (h *TransactionHandler) Create(c *gin.Context) {
-	portfolioID := c.Param("portfolio_id")
+	portfolioID := c.Param("id")
 	if portfolioID == "" {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
 			Error: "Portfolio ID is required",
@@ -121,7 +121,7 @@ func (h *TransactionHandler) Create(c *gin.Context) {
 // GetAll retrieves all transactions for a portfolio
 // GET /api/v1/portfolios/:portfolio_id/transactions
 func (h *TransactionHandler) GetAll(c *gin.Context) {
-	portfolioID := c.Param("portfolio_id")
+	portfolioID := c.Param("id")
 	if portfolioID == "" {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
 			Error: "Portfolio ID is required",

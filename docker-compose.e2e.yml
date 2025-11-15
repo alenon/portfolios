@@ -68,7 +68,7 @@ services:
       backend-e2e:
         condition: service_healthy
     volumes:
-      - ./tests/e2e:/tests
+      - ./tests/e2e:/root/tests/e2e
       - ./tests/e2e/fixtures:/fixtures
       - cli_config_e2e:/tmp/portfolios-e2e
     networks:
