@@ -50,17 +50,17 @@ func TestPerformanceGetHoldingsViaAPI(t *testing.T) {
 	transactions := []map[string]interface{}{
 		{
 			"symbol":           "AAPL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         10.0,
 			"price":            150.00,
-			"transaction_date": time.Now().AddDate(0, 0, -10).Format("2006-01-02"),
+			"date": time.Now().AddDate(0, 0, -10).Format("2006-01-02T15:04:05Z07:00"),
 		},
 		{
 			"symbol":           "GOOGL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         5.0,
 			"price":            120.00,
-			"transaction_date": time.Now().AddDate(0, 0, -5).Format("2006-01-02"),
+			"date": time.Now().AddDate(0, 0, -5).Format("2006-01-02T15:04:05Z07:00"),
 		},
 	}
 
@@ -194,34 +194,34 @@ func TestPerformanceWithMultipleTransactions(t *testing.T) {
 	transactions := []map[string]interface{}{
 		{
 			"symbol":           "AAPL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         10.0,
 			"price":            140.00,
-			"transaction_date": time.Now().AddDate(0, 0, -30).Format("2006-01-02"),
-			"fees":             5.00,
+			"date": time.Now().AddDate(0, 0, -30).Format("2006-01-02T15:04:05Z07:00"),
+			"commission":             5.00,
 		},
 		{
 			"symbol":           "AAPL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         5.0,
 			"price":            145.00,
-			"transaction_date": time.Now().AddDate(0, 0, -20).Format("2006-01-02"),
-			"fees":             2.50,
+			"date": time.Now().AddDate(0, 0, -20).Format("2006-01-02T15:04:05Z07:00"),
+			"commission":             2.50,
 		},
 		{
 			"symbol":           "GOOGL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         8.0,
 			"price":            115.00,
-			"transaction_date": time.Now().AddDate(0, 0, -15).Format("2006-01-02"),
+			"date": time.Now().AddDate(0, 0, -15).Format("2006-01-02T15:04:05Z07:00"),
 		},
 		{
 			"symbol":           "AAPL",
-			"transaction_type": "sell",
+			"type": "SELL",
 			"quantity":         5.0,
 			"price":            155.00,
-			"transaction_date": time.Now().AddDate(0, 0, -5).Format("2006-01-02"),
-			"fees":             2.00,
+			"date": time.Now().AddDate(0, 0, -5).Format("2006-01-02T15:04:05Z07:00"),
+			"commission":             2.00,
 		},
 	}
 
@@ -269,10 +269,10 @@ func TestPerformanceComparePortfolios(t *testing.T) {
 	txPath1 := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolio1ID)
 	techTx := map[string]interface{}{
 		"symbol":           "AAPL",
-		"transaction_type": "buy",
+		"type": "BUY",
 		"quantity":         20.0,
 		"price":            150.00,
-		"transaction_date": time.Now().AddDate(0, 0, -10).Format("2006-01-02"),
+		"date": time.Now().AddDate(0, 0, -10).Format("2006-01-02T15:04:05Z07:00"),
 	}
 	var resp1 interface{}
 	err = ctx.APIRequest("POST", txPath1, techTx, &resp1)
@@ -282,10 +282,10 @@ func TestPerformanceComparePortfolios(t *testing.T) {
 	txPath2 := fmt.Sprintf("/api/v1/portfolios/%s/transactions", portfolio2ID)
 	divTx := map[string]interface{}{
 		"symbol":           "SPY",
-		"transaction_type": "buy",
+		"type": "BUY",
 		"quantity":         10.0,
 		"price":            400.00,
-		"transaction_date": time.Now().AddDate(0, 0, -10).Format("2006-01-02"),
+		"date": time.Now().AddDate(0, 0, -10).Format("2006-01-02T15:04:05Z07:00"),
 	}
 	var resp2 interface{}
 	err = ctx.APIRequest("POST", txPath2, divTx, &resp2)
@@ -315,17 +315,17 @@ func createTestTransactions(ctx *TestContext, t *testing.T, portfolioID string) 
 	transactions := []map[string]interface{}{
 		{
 			"symbol":           "AAPL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         10.0,
 			"price":            150.00,
-			"transaction_date": time.Now().AddDate(0, 0, -5).Format("2006-01-02"),
+			"date": time.Now().AddDate(0, 0, -5).Format("2006-01-02T15:04:05Z07:00"),
 		},
 		{
 			"symbol":           "GOOGL",
-			"transaction_type": "buy",
+			"type": "BUY",
 			"quantity":         5.0,
 			"price":            120.00,
-			"transaction_date": time.Now().AddDate(0, 0, -3).Format("2006-01-02"),
+			"date": time.Now().AddDate(0, 0, -3).Format("2006-01-02T15:04:05Z07:00"),
 		},
 	}
 

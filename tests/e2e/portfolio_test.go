@@ -20,9 +20,10 @@ func TestPortfolioCreateViaAPI(t *testing.T) {
 
 	// Create portfolio
 	reqBody := map[string]interface{}{
-		"name":        "My Test Portfolio",
-		"description": "A portfolio for e2e testing",
-		"currency":    "USD",
+		"name":              "My Test Portfolio",
+		"description":       "A portfolio for e2e testing",
+		"base_currency":     "USD",
+		"cost_basis_method": "FIFO",
 	}
 
 	var respBody struct {
@@ -51,8 +52,9 @@ func TestPortfolioListViaAPI(t *testing.T) {
 	portfolioNames := []string{"Portfolio 1", "Portfolio 2", "Portfolio 3"}
 	for _, name := range portfolioNames {
 		reqBody := map[string]interface{}{
-			"name":     name,
-			"currency": "USD",
+			"name":              name,
+			"base_currency":     "USD",
+			"cost_basis_method": "FIFO",
 		}
 		var respBody interface{}
 		err := ctx.APIRequest("POST", "/api/v1/portfolios", reqBody, &respBody)
@@ -60,14 +62,17 @@ func TestPortfolioListViaAPI(t *testing.T) {
 	}
 
 	// List portfolios
-	var portfolios []struct {
-		ID   string `json:"id"`
-		Name string `json:"name"`
+	var portfolioListResp struct {
+		Portfolios []struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+		} `json:"portfolios"`
+		Total int `json:"total"`
 	}
 
-	err = ctx.APIRequest("GET", "/api/v1/portfolios", nil, &portfolios)
+	err = ctx.APIRequest("GET", "/api/v1/portfolios", nil, &portfolioListResp)
 	require.NoError(t, err, "Portfolio listing should succeed")
-	assert.GreaterOrEqual(t, len(portfolios), 3, "Should have at least 3 portfolios")
+	assert.GreaterOrEqual(t, len(portfolioListResp.Portfolios), 3, "Should have at least 3 portfolios")
 }
 
 // TestPortfolioGetByIDViaAPI tests getting a specific portfolio via API
@@ -80,9 +85,10 @@ func TestPortfolioGetByIDViaAPI(t *testing.T) {
 
 	// Create portfolio
 	reqBody := map[string]interface{}{
-		"name":        "Specific Portfolio",
-		"description": "Testing get by ID",
-		"currency":    "EUR",
+		"name":              "Specific Portfolio",
+		"description":       "Testing get by ID",
+		"base_currency":     "EUR",
+		"cost_basis_method": "FIFO",
 	}
 
 	var createResp struct {
@@ -121,8 +127,9 @@ func TestPortfolioUpdateViaAPI(t *testing.T) {
 
 	// Create portfolio
 	createReq := map[string]interface{}{
-		"name":     "Original Name",
-		"currency": "USD",
+		"name":              "Original Name",
+		"base_currency":     "USD",
+		"cost_basis_method": "FIFO",
 	}
 
 	var createResp struct {
@@ -161,8 +168,9 @@ func TestPortfolioDeleteViaAPI(t *testing.T) {
 
 	// Create portfolio
 	createReq := map[string]interface{}{
-		"name":     "Portfolio to Delete",
-		"currency": "USD",
+		"name":              "Portfolio to Delete",
+		"base_currency":     "USD",
+		"cost_basis_method": "FIFO",
 	}
 
 	var createResp struct {
@@ -192,8 +200,9 @@ func TestPortfolioHoldingsViaAPI(t *testing.T) {
 
 	// Create portfolio
 	createReq := map[string]interface{}{
-		"name":     "Holdings Test Portfolio",
-		"currency": "USD",
+		"name":              "Holdings Test Portfolio",
+		"base_currency":     "USD",
+		"cost_basis_method": "FIFO",
 	}
 
 	var createResp struct {
@@ -224,8 +233,9 @@ func TestCLIPortfolioList(t *testing.T) {
 	require.NoError(t, err)
 
 	createReq := map[string]interface{}{
-		"name":     "CLI Test Portfolio",
-		"currency": "USD",
+		"name":              "CLI Test Portfolio",
+		"base_currency":     "USD",
+		"cost_basis_method": "FIFO",
 	}
 	var createResp interface{}
 	err = ctx.APIRequest("POST", "/api/v1/portfolios", createReq, &createResp)
@@ -298,9 +308,10 @@ func TestCLIPortfolioShow(t *testing.T) {
 	require.NoError(t, err)
 
 	createReq := map[string]interface{}{
-		"name":        "Show Test Portfolio",
-		"description": "Testing show command",
-		"currency":    "USD",
+		"name":              "Show Test Portfolio",
+		"description":       "Testing show command",
+		"base_currency":     "USD",
+		"cost_basis_method": "FIFO",
 	}
 	var createResp struct {
 		ID string `json:"id"`
@@ -343,8 +354,9 @@ func TestCLIPortfolioDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	createReq := map[string]interface{}{
-		"name":     "Portfolio to Delete via CLI",
-		"currency": "USD",
+		"name":              "Portfolio to Delete via CLI",
+		"base_currency":     "USD",
+		"cost_basis_method": "FIFO",
 	}
 	var createResp struct {
 		ID string `json:"id"`
@@ -360,7 +372,7 @@ func TestCLIPortfolioDelete(t *testing.T) {
 	stdout, stderr, err := ctx.RunCLI(
 		"portfolio", "delete",
 		createResp.ID,
-		"--force", // Skip confirmation
+		// Skip confirmation
 	)
 	t.Logf("Portfolio delete stdout: %s", stdout)
 	t.Logf("Portfolio delete stderr: %s", stderr)
@@ -386,9 +398,10 @@ func TestPortfolioFlowEndToEnd(t *testing.T) {
 
 	// 2. Create portfolio
 	createReq := map[string]interface{}{
-		"name":        "End-to-End Portfolio",
-		"description": "Testing complete flow",
-		"currency":    "USD",
+		"name":              "End-to-End Portfolio",
+		"description":       "Testing complete flow",
+		"base_currency":     "USD",
+		"cost_basis_method": "FIFO",
 	}
 	var createResp struct {
 		ID          string `json:"id"`
@@ -400,12 +413,15 @@ func TestPortfolioFlowEndToEnd(t *testing.T) {
 	portfolioID := createResp.ID
 
 	// 3. List portfolios
-	var portfolios []struct {
-		ID string `json:"id"`
+	var portfolioListResp struct {
+		Portfolios []struct {
+			ID string `json:"id"`
+		} `json:"portfolios"`
+		Total int `json:"total"`
 	}
-	err = ctx.APIRequest("GET", "/api/v1/portfolios", nil, &portfolios)
+	err = ctx.APIRequest("GET", "/api/v1/portfolios", nil, &portfolioListResp)
 	require.NoError(t, err)
-	assert.GreaterOrEqual(t, len(portfolios), 1)
+	assert.GreaterOrEqual(t, len(portfolioListResp.Portfolios), 1)
 
 	// 4. Get specific portfolio
 	var getResp struct {
